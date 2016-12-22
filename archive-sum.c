@@ -63,7 +63,9 @@ int archive_sum(const char *filename) {
 }
 
 int main(int argc, char** argv) {
-  for (int i = 1; i < argc; i++)
+  int i;
+
+  for (i = 1; i < argc; i++)
     archive_sum(argv[i]);
 
   return EXIT_SUCCESS;

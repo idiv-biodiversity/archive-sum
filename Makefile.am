@@ -1,4 +1,4 @@
-EXTRA_DIST = LICENSE README.md
+EXTRA_DIST = autogen.sh LICENSE README.md
 
 bin_PROGRAMS = archive-sum
 
