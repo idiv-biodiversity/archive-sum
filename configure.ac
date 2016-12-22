@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
+AC_PREREQ([2.63])
 AC_INIT([archive-sum], [0.1.0], [https://github.com/wookietreiber/archive-sum/issues])
 AC_CONFIG_SRCDIR([archive-sum.c])
 AC_CONFIG_HEADERS([config.h])
