@@ -5,20 +5,27 @@
 
 #include <openssl/md5.h>
 
-#define BLOCK_SIZE 1048576
-
 int archive_sum(const char *filename) {
   struct archive *a;
   struct archive_entry *e;
 
   int n, r;
 
+  struct stat s;
+
+  if (stat(filename, &s) == -1) {
+    perror(filename);
+    return EXIT_FAILURE;
+  }
+
+  const blksize_t bsize = s.st_blksize;
+
   a = archive_read_new();
 
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
 
-  r = archive_read_open_filename(a, filename, BLOCK_SIZE);
+  r = archive_read_open_filename(a, filename, bsize);
 
   if (r != ARCHIVE_OK) {
     fprintf(stderr, "%s: %s\n", archive_error_string(a), filename);
@@ -31,13 +38,13 @@ int archive_sum(const char *filename) {
       continue;
 
     la_ssize_t size;
-    char buf[BLOCK_SIZE];
+    char buf[bsize];
     MD5_CTX c;
     unsigned char md[16];
 
     MD5_Init(&c);
 
-    while ((size = archive_read_data(a, &buf, BLOCK_SIZE)) > 0)
+    while ((size = archive_read_data(a, &buf, bsize)) > 0)
       MD5_Update(&c, buf, size);
 
     MD5_Final(md, &c);
