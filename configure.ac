@@ -20,10 +20,9 @@ PKG_CHECK_MODULES(LIBARCHIVE, libarchive)
 AC_CHECK_HEADERS([stdlib.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_MEMBERS([struct stat.st_blksize])
 
 # Checks for library functions.
-AC_FUNC_MALLOC
 
 AC_CONFIG_FILES([Makefile])
-
 AC_OUTPUT
