@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([archive-sum], [0.1.0], [https://github.com/wookietreiber/archive-sum/issues])
+AC_INIT([archive-sum], [0.1.0], [https://github.com/idiv-biodiversity/archive-sum/issues])
 AC_CONFIG_SRCDIR([archive-sum.c])
 AC_CONFIG_HEADERS([config.h])
 
