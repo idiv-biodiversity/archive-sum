@@ -1,9 +1,14 @@
+#include <getopt.h>
 #include <stdlib.h>
 
 #include <archive.h>
 #include <archive_entry.h>
 
 #include <openssl/evp.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 int archive_sum(const EVP_MD *md, const char *filename) {
   struct archive *a;
@@ -69,28 +74,81 @@ int archive_sum(const EVP_MD *md, const char *filename) {
   return EXIT_SUCCESS;
 }
 
+static const struct option long_options[] = {
+  { "help",   no_argument,       0, 'h' },
+  { "digest", required_argument, 0, 'd' },
+  { 0, 0, 0, 0 }
+};
+
 int main(int argc, char **argv) {
   int i;
+  char *digest = "md5";
 
-  if (argc < 3) {
-    printf("usage: %s hash file..\n", argv[0]);
+  char usage [1024];
+  snprintf(usage,
+           1024,
+           "%s\n"
+           "\n"
+           "usage: %s [-d digest] archive...\n"
+           "\n"
+           "options:\n"
+           "  -d | --digest        choose digest: md5, sha1, sha256, sha512, ...\n"
+           "                       (default is %s)\n"
+           "  archive...           list of archive files\n"
+           "\n"
+           "  -h | --help          display help\n",
+           PACKAGE_STRING,
+           argv[0],
+           digest
+           );
+
+  // ---------------------------------------------------------------------------
+  // command line options
+  // ---------------------------------------------------------------------------
+
+  while (1) {
+    i = getopt_long(argc, argv, "d:h", long_options, 0);
+
+    if (i == -1)
+      break;
+
+    switch (i) {
+    case 'd':
+      digest = optarg;
+      break;
+    case 'h':
+      printf(usage);
+      return EXIT_SUCCESS;
+    default:
+      fprintf(stderr, "---\n%s", usage);
+      return EXIT_FAILURE;
+    }
+  }
+
+  if (argc == optind) {
+    fprintf(stderr, "%s: no archive file specified\n---\n%s", argv[0], usage);
     return EXIT_FAILURE;
   }
+
+  // ---------------------------------------------------------------------------
+  // digest
+  // ---------------------------------------------------------------------------
 
   OpenSSL_add_all_digests();
-
-  const EVP_MD *md = EVP_get_digestbyname(argv[1]);
+  const EVP_MD *md = EVP_get_digestbyname(digest);
+  EVP_cleanup();
 
   if (!md) {
-    fprintf(stderr, "unknown digest: %s\n", argv[1]);
-    EVP_cleanup();
+    fprintf(stderr, "%s: unknown digest: %s\n---\n%s", argv[0], digest, usage);
     return EXIT_FAILURE;
   }
 
-  for (i = 2; i < argc; i++)
-    archive_sum(md, argv[i]);
+  // ---------------------------------------------------------------------------
+  // handle archives
+  // ---------------------------------------------------------------------------
 
-  EVP_cleanup();
+  for (i = optind; i < argc; i++)
+    archive_sum(md, argv[i]);
 
   return EXIT_SUCCESS;
 }
