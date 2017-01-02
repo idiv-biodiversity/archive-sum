@@ -93,8 +93,16 @@ int main(int argc, char **argv) {
            "\n"
            "options:\n"
            "  -d | --digest        choose digest: md5, sha1, sha256, sha512, ...\n"
-           "                       (default is %s)\n"
+           "\n"
+           "                       for a full list of supported digests:\n"
+           "                         openssl list-message-digest-algorithms\n"
+           "\n"
+           "                       default is %s\n"
+           "\n"
            "  archive...           list of archive files\n"
+           "\n"
+           "                       for a full list of supported formats:\n"
+           "                         man 5 libarchive-formats\n"
            "\n"
            "  -h | --help          display help\n",
            PACKAGE_STRING,
