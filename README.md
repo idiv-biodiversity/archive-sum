@@ -8,7 +8,7 @@ The primary use of **archive-sum** is to **verify the integrity of archive files
 
 In its simplest form, **archive-sum** prints the checksums of the files within an archive:
 
-```bash
+```console
 $ archive-sum archive-sum-example.tar.gz
 c157a79031e1c40f85931829bc5fc552  archive-sum-example/bar
 258622b1688250cb619f3c9ccaefb7eb  archive-sum-example/baz
@@ -17,7 +17,7 @@ d3b07384d113edec49eaa6238ad5ff00  archive-sum-example/foo
 
 If you want a different hash function (digest), specify it like this:
 
-```bash
+```console
 $ archive-sum -d sha256 archive-sum-example.tar.gz
 7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730  archive-sum-example/bar
 bf07a7fbb825fc0aae7bf4a1177b2b31fcf8a3feeaf7092761e18c859ee52a9c  archive-sum-example/baz
@@ -26,7 +26,7 @@ b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c  archive-sum-ex
 
 To get a more detailed help, take a look at the **archive-sum** help text:
 
-```bash
+```console
 $ archive-sum --help
 ```
 
@@ -34,7 +34,7 @@ $ archive-sum --help
 
 Lets create an archive with some content:
 
-```bash
+```console
 mkdir archive-sum-example
 echo foo > archive-sum-example/foo
 echo bar > archive-sum-example/bar
@@ -44,7 +44,7 @@ tar czf archive-sum-example.tar.gz archive-sum-example/
 
 To compare the original content with the files within the archive, we first need to create the checksums of the original files:
 
-```bash
+```console
 $ md5sum archive-sum-example/*
 c157a79031e1c40f85931829bc5fc552  archive-sum-example/bar
 258622b1688250cb619f3c9ccaefb7eb  archive-sum-example/baz
@@ -53,7 +53,7 @@ d3b07384d113edec49eaa6238ad5ff00  archive-sum-example/foo
 
 Finally, we can compare this with the output of **archive-sum**:
 
-```bash
+```console
 $ archive-sum archive-sum-example.tar.gz
 c157a79031e1c40f85931829bc5fc552  archive-sum-example/bar
 258622b1688250cb619f3c9ccaefb7eb  archive-sum-example/baz
@@ -66,7 +66,7 @@ As you can see from the output, the content of the archive file is exactly the s
 
 [All archive formats that libarchive supports](https://github.com/libarchive/libarchive/#supported-formats). Your local libarchive installations needs to be configured to use these formats. Also, the following libarchive man page lists its supported formats:
 
-```bash
+```console
 man 5 libarchive-formats
 ```
 
@@ -74,7 +74,7 @@ man 5 libarchive-formats
 
 All hash functions that OpenSSL supports. You can get a list from your local OpenSSL installation:
 
-```bash
+```console
 openssl list-message-digest-algorithms
 ```
 
@@ -89,7 +89,7 @@ openssl list-message-digest-algorithms
 
 The installation requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
 
-```bash
+```console
 ./configure
 make
 make install
