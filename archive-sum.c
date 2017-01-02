@@ -46,7 +46,7 @@ int archive_sum(const EVP_MD *md, const char *filename) {
     if (archive_entry_filetype(e) != AE_IFREG)
       continue;
 
-    la_ssize_t size;
+    ssize_t size;
     char buf[bsize];
 
     EVP_DigestInit_ex(mdctx, md, NULL);
@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
       digest = optarg;
       break;
     case 'h':
-      printf(usage);
+      printf("%s", usage);
       return EXIT_SUCCESS;
     default:
       fprintf(stderr, "---\n%s", usage);
