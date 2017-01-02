@@ -35,11 +35,11 @@ $ archive-sum --help
 Lets create an archive with some content:
 
 ```console
-mkdir archive-sum-example
-echo foo > archive-sum-example/foo
-echo bar > archive-sum-example/bar
-echo baz > archive-sum-example/baz
-tar czf archive-sum-example.tar.gz archive-sum-example/
+$ mkdir archive-sum-example
+$ echo foo > archive-sum-example/foo
+$ echo bar > archive-sum-example/bar
+$ echo baz > archive-sum-example/baz
+$ tar czf archive-sum-example.tar.gz archive-sum-example/
 ```
 
 To compare the original content with the files within the archive, we first need to create the checksums of the original files:
@@ -67,7 +67,7 @@ As you can see from the output, the content of the archive file is exactly the s
 [All archive formats that libarchive supports](https://github.com/libarchive/libarchive/#supported-formats). Your local libarchive installations needs to be configured to use these formats. Also, the following libarchive man page lists its supported formats:
 
 ```console
-man 5 libarchive-formats
+$ man 5 libarchive-formats
 ```
 
 ## Supported Hash Functions (Digests)
@@ -75,7 +75,7 @@ man 5 libarchive-formats
 All hash functions that OpenSSL supports. You can get a list from your local OpenSSL installation:
 
 ```console
-openssl list-message-digest-algorithms
+$ openssl list-message-digest-algorithms
 ```
 
 # Installation
@@ -90,7 +90,7 @@ openssl list-message-digest-algorithms
 The installation requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
 
 ```console
-./configure
-make
-make install
+$ ./configure
+$ make
+$ make install
 ```
