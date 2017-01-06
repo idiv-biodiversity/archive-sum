@@ -74,19 +74,22 @@ int archive_sum(const EVP_MD *md, const char *filename) {
   return EXIT_SUCCESS;
 }
 
+// clang-format off
+
 static const struct option long_options[] = {
   { "help",   no_argument,       0, 'h' },
   { "digest", required_argument, 0, 'd' },
   { 0, 0, 0, 0 }
 };
 
+// clang-format on
+
 int main(int argc, char **argv) {
   int i;
   char *digest = "md5";
 
-  char usage [1024];
-  snprintf(usage,
-           1024,
+  char usage[1024];
+  snprintf(usage, 1024,
            "%s\n"
            "\n"
            "usage: %s [-d digest] archive...\n"
@@ -105,10 +108,7 @@ int main(int argc, char **argv) {
            "                         man 5 libarchive-formats\n"
            "\n"
            "  -h | --help          display help\n",
-           PACKAGE_STRING,
-           argv[0],
-           digest
-           );
+           PACKAGE_STRING, argv[0], digest);
 
   // ---------------------------------------------------------------------------
   // command line options
