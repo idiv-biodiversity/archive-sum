@@ -17,8 +17,11 @@ PKG_CHECK_MODULES(CRYPTO, libcrypto)
 PKG_CHECK_MODULES(LIBARCHIVE, libarchive)
 
 # Checks for header files.
+AC_CHECK_HEADERS([fcntl.h string.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+# add when travis has autoconf 2.69+ AC_CHECK_HEADER_STDBOOL
+AC_HEADER_STDBOOL
 AC_TYPE_SSIZE_T
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 

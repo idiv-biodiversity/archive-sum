@@ -6,4 +6,7 @@ archive_sum_LDADD = $(CRYPTO_LIBS) $(LIBARCHIVE_LIBS)
 archive_sum_SOURCES = \
 	archive-sum.h \
 	archive-sum.c \
-	sum.c
+	check.c \
+	sum.c \
+	util.h \
+	util.c
