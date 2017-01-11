@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   // ---------------------------------------------------------------------------
 
   while (1) {
-    i = getopt_long(argc, argv, "c:d:h", long_options, &option_index);
+    i = getopt_long(argc, argv, "c::d:h", long_options, &option_index);
 
     if (i == -1)
       break;
@@ -131,6 +131,10 @@ int main(int argc, char **argv) {
       archive_sum(md, argv[i]);
 
   }
+
+  // ---------------------------------------------------------------------------
+  // exit
+  // ---------------------------------------------------------------------------
 
   if (problems)
     return EXIT_FAILURE;

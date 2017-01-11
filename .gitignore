@@ -51,8 +51,12 @@ depcomp
 install-sh
 missing
 stamp-h1
+test-driver
+*.log
+*.trs
 
 # generated products
 archive-sum
 *.tar.*
 *.zip
+test/setup-archive-sum-test.sh

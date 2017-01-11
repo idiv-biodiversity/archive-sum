@@ -28,5 +28,8 @@ AC_CHECK_MEMBERS([struct stat.st_blksize])
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 test/Makefile
+                 test/cppcheck.sh
+                 test/setup-archive-sum-test.sh])
 AC_OUTPUT

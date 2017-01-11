@@ -1,3 +1,3 @@
 EXTRA_DIST = autogen.sh LICENSE README.md
 
-SUBDIRS = src
+SUBDIRS = src test

@@ -117,7 +117,6 @@ int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
 
       if (memcmp(md_value_archive, md_value_original, archive_md_len) != 0)
         warning += 1;
-
     }
   }
 
@@ -130,7 +129,7 @@ int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
   }
 
   if (warning > 0 && verbosity != STATUS) {
-    fprintf(stderr, "%s: WARNING: %d computed %s did NOT match\n", archive, warning,
+    fprintf(stderr, "%s: WARNING: %u computed %s did NOT match\n", archive, warning,
             warning == 1 ? "checksum" : "checksums");
   }
 
