@@ -27,8 +27,16 @@ AC_CHECK_MEMBERS([struct stat.st_blksize])
 
 # Checks for operating system services or capabilities.
 AC_SYS_LARGEFILE
+AM_CONDITIONAL([WANTS_LARGEFILE], [test "$enable_largefile" != no])
 
 # Checks for library functions.
+
+# Optional stuff.
+AC_ARG_ENABLE([all_tests],
+              [AS_HELP_STRING([--enable-all-tests], [enable long running tests])],
+              [],
+              [all_tests=no])
+AM_CONDITIONAL([WANTS_ALL_TESTS], [test "$enable_all_tests" == yes])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

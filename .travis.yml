@@ -20,6 +20,6 @@ script:
   - autoconf --version
   - automake --version
   - ./autogen.sh
-  - ./configure
+  - ./configure --enable-all-tests
   - make
-  - make check
+  - make distcheck
