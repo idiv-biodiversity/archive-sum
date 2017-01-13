@@ -1,3 +1,4 @@
+#include "archive-sum.h"
 #include "util.h"
 
 #include <sys/stat.h>

@@ -25,6 +25,9 @@ AC_HEADER_STDBOOL
 AC_TYPE_SSIZE_T
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 
+# Checks for operating system services or capabilities.
+AC_SYS_LARGEFILE
+
 # Checks for library functions.
 
 AC_CONFIG_FILES([Makefile
