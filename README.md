@@ -1,6 +1,7 @@
 # archive-sum
 
 [![Build Status](https://travis-ci.org/idiv-biodiversity/ansible-role-repo-xcat.svg?branch=master)](https://travis-ci.org/idiv-biodiversity/archive-sum)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9ec02e2f096f40d596cef5eb0b43a101)](https://www.codacy.com/app/wookietreiber/archive-sum?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=idiv-biodiversity/archive-sum&amp;utm_campaign=Badge_Grade)
 
 Generates checksums of files within an [archive file](https://en.wikipedia.org/wiki/Archive_file) without extracting its contents.
 
