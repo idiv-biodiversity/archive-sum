@@ -2,7 +2,6 @@
 
 #include <getopt.h>
 #include <stdbool.h>
-#include <string.h>
 
 // clang-format off
 
@@ -39,6 +38,9 @@ int main(int argc, char **argv) {
            "                       default is %s\n"
            "\n"
            "  archive...           list of archive files\n"
+           "\n"
+           "                       if no archive is given or archive is \"-\"\n"
+           "                       read from stdin\n"
            "\n"
            "                       for a full list of supported formats:\n"
            "                         man 5 libarchive-formats\n"
@@ -93,11 +95,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (argc == optind) {
-    fprintf(stderr, "%s: no archive file specified\n---\n%s", argv[0], usage);
-    return EXIT_FAILURE;
-  }
-
   // ---------------------------------------------------------------------------
   // digest
   // ---------------------------------------------------------------------------
@@ -115,17 +112,30 @@ int main(int argc, char **argv) {
   // handle archives
   // ---------------------------------------------------------------------------
 
-  if (check) {
+  if (argc == optind) {
 
-    for (i = optind; i < argc; i++)
-      if (!archive_check(md, check_dir, argv[i], verbosity))
+    // no archive file given, read from stdin
+
+    if (check) {
+      if (!archive_check(md, check_dir, NULL, verbosity))
         problems = true;
+    } else {
+      archive_sum(md, NULL);
+    }
 
   } else {
 
-    for (i = optind; i < argc; i++)
-      archive_sum(md, argv[i]);
+    if (check) {
 
+      for (i = optind; i < argc; i++)
+        if (!archive_check(md, check_dir, argv[i], verbosity))
+          problems = true;
+
+    } else {
+
+      for (i = optind; i < argc; i++)
+        archive_sum(md, argv[i]);
+    }
   }
 
   // ---------------------------------------------------------------------------

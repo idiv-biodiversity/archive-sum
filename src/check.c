@@ -24,23 +24,35 @@ int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
 
   char original_path[PATH_MAX];
 
-  // get fs bsize for archive
-  if (!bsize(archive, &archive_bsize))
-    return 0;
-
-  char buf[archive_bsize];
-
   // new archive
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
 
-  // open archive
-  if (archive_read_open_filename(a, archive, archive_bsize) != ARCHIVE_OK) {
-    fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
-    archive_read_free(a);
-    return 0;
+  if (archive == NULL || strcmp("-", archive) == 0) {
+
+    archive_bsize = 32768; // TODO magic number
+
+    if (archive_read_open_filename(a, NULL, archive_bsize) != ARCHIVE_OK) {
+      fprintf(stderr, "%s: stdin\n", archive_error_string(a));
+      archive_read_free(a);
+      return 0;
+    }
+
+  } else {
+
+    // get fs bsize for archive
+    if (!bsize(archive, &archive_bsize))
+      return 0;
+
+    if (archive_read_open_filename(a, archive, archive_bsize) != ARCHIVE_OK) {
+      fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
+      archive_read_free(a);
+      return 0;
+    }
   }
+
+  char buf[archive_bsize];
 
   // init digest
   EVP_MD_CTX *mdctx = EVP_MD_CTX_create();

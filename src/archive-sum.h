@@ -6,6 +6,7 @@
 #endif
 
 #include <openssl/evp.h>
+#include <string.h>
 
 typedef enum { NORMAL, QUIET, STATUS } verbosity_t;
 

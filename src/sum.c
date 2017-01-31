@@ -14,23 +14,37 @@ int archive_sum(const EVP_MD *md, const char *archive) {
 
   blksize_t archive_bsize;
 
-  // get fs bsize for archive
-  if (!bsize(archive, &archive_bsize))
-    return EXIT_FAILURE;
-
-  char buf[archive_bsize];
-
   // new archive
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
 
-  // open archive
-  if (archive_read_open_filename(a, archive, archive_bsize) != ARCHIVE_OK) {
-    fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
-    archive_read_free(a);
-    return EXIT_FAILURE;
+  if (archive == NULL || strcmp("-", archive) == 0) {
+
+    archive_bsize = 32768; // TODO magic number
+
+    if (archive_read_open_filename(a, NULL, archive_bsize) != ARCHIVE_OK) {
+      fprintf(stderr, "%s: stdin\n", archive_error_string(a));
+      archive_read_free(a);
+      return EXIT_FAILURE;
+    }
+
+  } else {
+
+    // get fs bsize for archive
+    if (!bsize(archive, &archive_bsize))
+      return EXIT_FAILURE;
+
+    if (archive_read_open_filename(a, archive, archive_bsize) != ARCHIVE_OK) {
+      fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
+      archive_read_free(a);
+      return EXIT_FAILURE;
+    }
   }
+
+  char buf[archive_bsize];
+
+  // open archive
 
   // init digest
   EVP_MD_CTX *mdctx = EVP_MD_CTX_create();

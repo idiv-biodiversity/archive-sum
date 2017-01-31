@@ -5,6 +5,10 @@ NORMAL_TESTS = \
 	check-missing.sh \
 	check-quiet.sh \
 	check-status.sh \
+	stdin-cli-empty-check.sh \
+	stdin-cli-empty-sum.sh \
+	stdin-cli-dash-check.sh \
+	stdin-cli-dash-sum.sh \
 	memcheck-check.sh \
 	memcheck-sum.sh
 
