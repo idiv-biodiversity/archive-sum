@@ -10,9 +10,9 @@
 
 typedef enum { NORMAL, QUIET, STATUS } verbosity_t;
 
-int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
-                  verbosity_t verbosity);
+int archive_check(const EVP_MD *md, const char *check_dir, char *archive,
+                  const verbosity_t verbosity);
 
-int archive_sum(const EVP_MD *md, const char *filename);
+int archive_sum(const EVP_MD *md, char *filename);
 
 #endif

@@ -5,6 +5,7 @@ NORMAL_TESTS = \
 	check-missing.sh \
 	check-quiet.sh \
 	check-status.sh \
+	check-with-dir.sh \
 	stdin-cli-empty-check.sh \
 	stdin-cli-empty-sum.sh \
 	stdin-cli-dash-check.sh \

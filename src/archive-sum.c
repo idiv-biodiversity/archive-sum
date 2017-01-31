@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   snprintf(usage, 2048,
            "%s\n"
            "\n"
-           "usage: %s [-c [dir]] [-d digest] archive...\n"
+           "usage: %s [-c[dir]] [-d digest] archive...\n"
            "\n"
            "general options:\n"
            "  -d | --digest        choose digest: md5, sha1, sha256, sha512, ...\n"
@@ -124,6 +124,8 @@ int main(int argc, char **argv) {
     }
 
   } else {
+
+    // iterate through archive files
 
     if (check) {
 

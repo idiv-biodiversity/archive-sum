@@ -2,13 +2,12 @@
 #include "util.h"
 
 #include <fcntl.h>
-#include <string.h>
 
 #include <archive.h>
 #include <archive_entry.h>
 
-int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
-                  verbosity_t verbosity) {
+int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
+                  const verbosity_t verbosity) {
 
   struct archive *a;
   struct archive_entry *e;
@@ -29,27 +28,19 @@ int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
 
-  if (archive == NULL || strcmp("-", archive) == 0) {
+  // sanitize filename for opening and for error messages
+  char *error_filename, *open_filename;
+  sanitize_filename(filename, &open_filename, &error_filename);
 
-    archive_bsize = 32768; // TODO magic number
+  // get fs bsize for archive
+  if (!bsize(open_filename, &archive_bsize))
+    return 0;
 
-    if (archive_read_open_filename(a, NULL, archive_bsize) != ARCHIVE_OK) {
-      fprintf(stderr, "%s: stdin\n", archive_error_string(a));
-      archive_read_free(a);
-      return 0;
-    }
-
-  } else {
-
-    // get fs bsize for archive
-    if (!bsize(archive, &archive_bsize))
-      return 0;
-
-    if (archive_read_open_filename(a, archive, archive_bsize) != ARCHIVE_OK) {
-      fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
-      archive_read_free(a);
-      return 0;
-    }
+  // open archive
+  if (archive_read_open_filename(a, open_filename, archive_bsize) != ARCHIVE_OK) {
+    fprintf(stderr, "%s: %s\n", archive_error_string(a), error_filename);
+    archive_read_free(a);
+    return 0;
   }
 
   char buf[archive_bsize];
@@ -128,26 +119,28 @@ int archive_check(const EVP_MD *md, const char *check_dir, const char *archive,
     }
   }
 
+  // free digest
   EVP_MD_CTX_destroy(mdctx);
+
+  // free archive
+  if (archive_read_free(a) != ARCHIVE_OK) {
+    fprintf(stderr, "%s: %s\n", archive_error_string(a), error_filename);
+    return 0;
+  }
 
   // issue warning summaries
   if (missing > 0 && verbosity != STATUS) {
-    fprintf(stderr, "%s: WARNING: %u listed %s could not be read\n", archive, missing,
+    fprintf(stderr, "%s: WARNING: %u listed %s could not be read\n", error_filename, missing,
             warning == 1 ? "file" : "files");
   }
 
   if (warning > 0 && verbosity != STATUS) {
-    fprintf(stderr, "%s: WARNING: %u computed %s did NOT match\n", archive, warning,
+    fprintf(stderr, "%s: WARNING: %u computed %s did NOT match\n", error_filename, warning,
             warning == 1 ? "checksum" : "checksums");
-  }
-
-  if (archive_read_free(a) != ARCHIVE_OK) {
-    fprintf(stderr, "%s: %s\n", archive_error_string(a), archive);
-    return 0;
   }
 
   if (missing > 0 || warning > 0)
     return 0;
-  else
-    return 1;
+
+  return 1;
 }

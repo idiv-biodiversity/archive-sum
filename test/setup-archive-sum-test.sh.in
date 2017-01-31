@@ -1,11 +1,5 @@
 #!/bin/bash
 
-function check {
-  return 0
-}
-
-export -f check
-
 export ARCHIVE_SUM=$PWD/../src/archive-sum
 
 export TMP_DIR=$(mktemp -d)
