@@ -59,4 +59,5 @@ test-driver
 archive-sum
 *.tar.*
 *.zip
+test/cppcheck.sh
 test/setup-archive-sum-test.sh
