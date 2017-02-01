@@ -3,6 +3,8 @@
 
 #include <fcntl.h>
 
+#include <linux/limits.h>
+
 #include <archive.h>
 #include <archive_entry.h>
 
