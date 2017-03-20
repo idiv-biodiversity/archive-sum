@@ -17,7 +17,7 @@ int archive_sum(const EVP_MD *md, char *filename) {
   // new archive
   a = archive_read_new();
   archive_read_support_filter_all(a);
-  archive_read_support_format_all(a);
+  archive_read_suppot_format_all(a);
 
   // sanitize filename for opening and for error messages
   char *error_filename, *open_filename;
