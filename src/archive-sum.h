@@ -1,12 +1,12 @@
 #ifndef ARCHIVE_SUM_H
 #define ARCHIVE_SUM_H
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <openssl/evp.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 typedef enum { NORMAL, QUIET, STATUS } verbosity_t;
 

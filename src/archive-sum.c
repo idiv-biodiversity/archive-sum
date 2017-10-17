@@ -6,11 +6,12 @@
 // clang-format off
 
 static const struct option long_options[] = {
-  { "help",   no_argument,       0, 'h' },
-  { "check",  optional_argument, 0, 'c' },
-  { "digest", required_argument, 0, 'd' },
-  { "quiet",  no_argument,       0,  0  },
-  { "status", no_argument,       0,  0  },
+  { "help",    no_argument,       0, 'h' },
+  { "version", no_argument,       0,  0  },
+  { "check",   optional_argument, 0, 'c' },
+  { "digest",  required_argument, 0, 'd' },
+  { "quiet",   no_argument,       0,  0  },
+  { "status",  no_argument,       0,  0  },
   { 0, 0, 0, 0 }
 };
 
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
 
   char usage[2048];
   snprintf(usage, 2048,
-           "%s\n"
+           "archive-sum %s\n"
            "\n"
            "usage: %s [-c[dir]] [-d digest] archive...\n"
            "\n"
@@ -46,6 +47,7 @@ int main(int argc, char **argv) {
            "                         man 5 libarchive-formats\n"
            "\n"
            "  -h | --help          display help\n"
+           "  --version            display version\n"
            "\n"
            "verification options:\n"
            "  -c | --check         read all files from archive and compare them\n"
@@ -58,7 +60,7 @@ int main(int argc, char **argv) {
            "\n"
            "  --status             don't output anything, status code shows success\n"
            "\n",
-           PACKAGE_STRING, argv[0], digest);
+           PACKAGE_VERSION, argv[0], digest);
 
   // ---------------------------------------------------------------------------
   // command line options
@@ -74,7 +76,10 @@ int main(int argc, char **argv) {
     case 0:
       if (strcmp("quiet", long_options[option_index].name) == 0)
         verbosity = QUIET;
-      else if (strcmp("status", long_options[option_index].name) == 0)
+      else if (strcmp("version", long_options[option_index].name) == 0) {
+        printf("archive-sum %s\n", PACKAGE_VERSION);
+        return EXIT_SUCCESS;
+      } else if (strcmp("status", long_options[option_index].name) == 0)
         verbosity = STATUS;
 
       break;

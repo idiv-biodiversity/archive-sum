@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-export ARCHIVE_SUM=$PWD/../src/archive-sum
+export ARCHIVE_SUM=$PWD/src/archive-sum
 
-export TMP_DIR=$(mktemp -d)
+TMP_DIR=$(mktemp -d)
+export TMP_DIR
 
-cd $TMP_DIR
+cd "$TMP_DIR" || exit 1
 
 export TEST_ARCHIVE_DIR_NAME=fbb
 export TEST_ARCHIVE_DIR=$TEST_ARCHIVE_DIR_NAME

@@ -1,11 +1,16 @@
-dist: trusty
 sudo: false
 
-language: c
+os: linux
+dist: trusty
 
-compiler:
-  - clang
-  - gcc
+language: python
+
+python: 3.6
+
+matrix:
+  include:
+    - env: CC=gcc
+    - env: CC=clang
 
 addons:
   apt:
@@ -16,10 +21,14 @@ addons:
       - libssl-dev
       - valgrind
 
+install:
+  - export NINJA_LATEST=$(curl -s https://api.github.com/repos/ninja-build/ninja/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep ninja-linux.zip)
+  - wget "$NINJA_LATEST"
+  - unzip -q ninja-linux.zip -d build
+  - export PATH="$PWD/build:$PATH"
+  - pip install meson
+
 script:
-  - autoconf --version
-  - automake --version
-  - ./autogen.sh
-  - ./configure --enable-all-tests
-  - make
-  - make distcheck
+  - meson build
+  - ninja -C build
+  - meson test -C build --no-suite lfs

@@ -89,14 +89,25 @@ pacaur -S archive-sum
 - the [libarchive](http://www.libarchive.org/) multi-format archive and compression library
 - the [OpenSSL](https://www.openssl.org/) cryptography library
 
-**installation:**
+**building:**
 
-The installation requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
+The build requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
 
 ```bash
-./configure
-make
-make install
+meson build
+ninja -C build
+```
+
+**testing:**
+
+```
+meson test -C build --no-suite lfs
+```
+
+**install:**
+
+```
+ninja -C build install
 ```
 
 Supported Archive File Formats

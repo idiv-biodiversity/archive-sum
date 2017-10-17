@@ -2,7 +2,10 @@
 #include "archive-sum.h"
 
 #include <stdio.h>
+
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define STDIN_BUF_SIZE 32768
 

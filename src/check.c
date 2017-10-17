@@ -8,6 +8,9 @@
 #include <archive.h>
 #include <archive_entry.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
                   const verbosity_t verbosity) {
 
