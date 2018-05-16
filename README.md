@@ -44,8 +44,8 @@ b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c  example/foo
 
 To get a more detailed help, take a look at the **archive-sum** help text:
 
-```console
-$ archive-sum --help
+```bash
+archive-sum --help
 ```
 
 ### Archive Verification
@@ -78,7 +78,7 @@ Installation
 
 Install the [**archive-sum** AUR package](https://aur.archlinux.org/packages/archive-sum/):
 
-```
+```bash
 pacaur -S archive-sum
 ```
 
@@ -93,26 +93,26 @@ pacaur -S archive-sum
 
 The installation requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
 
-```console
-$ ./configure
-$ make
-$ make install
+```bash
+./configure
+make
+make install
 ```
 
 Supported Archive File Formats
 ------------------------------
 
-[All archive formats that your version of libarchive supports](https://github.com/libarchive/libarchive/#supported-formats). Your local libarchive installations needs to be configured to use these formats. Also, the following libarchive man page lists its supported formats:
+All archive formats are supported that your version of libarchive supports (for all possible ones of the latest libarchive version, see [here](https://github.com/libarchive/libarchive/#supported-formats)). The following libarchive man page lists its supported formats:
 
-```console
-$ man 5 libarchive-formats
+```bash
+man 5 libarchive-formats
 ```
 
 Supported Hash Functions (Digests)
 ----------------------------------
 
-All hash functions that your version of OpenSSL supports. You can get a list from your local OpenSSL installation:
+All hash functions are supported that your local version of OpenSSL supports. You can get a list from your OpenSSL installation:
 
-```console
-$ openssl list-message-digest-algorithms
+```bash
+openssl list-message-digest-algorithms
 ```
