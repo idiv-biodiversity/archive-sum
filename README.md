@@ -1,11 +1,28 @@
-# archive-sum
+archive-sum
+===========
 
 [![Build Status](https://travis-ci.org/idiv-biodiversity/ansible-role-repo-xcat.svg?branch=master)](https://travis-ci.org/idiv-biodiversity/archive-sum)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9ec02e2f096f40d596cef5eb0b43a101)](https://www.codacy.com/app/wookietreiber/archive-sum?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=idiv-biodiversity/archive-sum&amp;utm_campaign=Badge_Grade)
 
 Generates checksums of files within an [archive file](https://en.wikipedia.org/wiki/Archive_file) without extracting its contents.
 
-## Usage
+Table of Contents
+-----------------
+
+<!-- toc -->
+
+- [Usage](#usage)
+  * [Archive Verification](#archive-verification)
+- [Installation](#installation)
+  * [Arch Linux](#arch-linux)
+  * [Manual](#manual)
+- [Supported Archive File Formats](#supported-archive-file-formats)
+- [Supported Hash Functions (Digests)](#supported-hash-functions-digests)
+
+<!-- tocstop -->
+
+Usage
+-----
 
 In its simplest form, **archive-sum** prints the checksums of the files within an archive:
 
@@ -54,30 +71,25 @@ example/bar: OK
 
 As you can see from the output, the content of the archive file is exactly the same as the original. We verified the integrity of the archive file.
 
-## Supported Archive File Formats
+Installation
+------------
 
-[All archive formats that libarchive supports](https://github.com/libarchive/libarchive/#supported-formats). Your local libarchive installations needs to be configured to use these formats. Also, the following libarchive man page lists its supported formats:
+### Arch Linux
 
-```console
-$ man 5 libarchive-formats
+Install the [**archive-sum** AUR package](https://aur.archlinux.org/packages/archive-sum/):
+
+```
+pacaur -S archive-sum
 ```
 
-## Supported Hash Functions (Digests)
+### Manual
 
-All hash functions that OpenSSL supports. You can get a list from your local OpenSSL installation:
-
-```console
-$ openssl list-message-digest-algorithms
-```
-
-## Installation
-
-### Dependencies
+**dependencies:**
 
 - the [libarchive](http://www.libarchive.org/) multi-format archive and compression library
 - the [OpenSSL](https://www.openssl.org/) cryptography library
 
-### Installation
+**installation:**
 
 The installation requires the dependencies to be available and they are detected using their [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) files.
 
@@ -85,4 +97,22 @@ The installation requires the dependencies to be available and they are detected
 $ ./configure
 $ make
 $ make install
+```
+
+Supported Archive File Formats
+------------------------------
+
+[All archive formats that your version of libarchive supports](https://github.com/libarchive/libarchive/#supported-formats). Your local libarchive installations needs to be configured to use these formats. Also, the following libarchive man page lists its supported formats:
+
+```console
+$ man 5 libarchive-formats
+```
+
+Supported Hash Functions (Digests)
+----------------------------------
+
+All hash functions that your version of OpenSSL supports. You can get a list from your local OpenSSL installation:
+
+```console
+$ openssl list-message-digest-algorithms
 ```
