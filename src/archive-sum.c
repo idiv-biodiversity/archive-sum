@@ -8,6 +8,7 @@
 static const struct option long_options[] = {
   { "help",    no_argument,       0, 'h' },
   { "version", no_argument,       0,  0  },
+  { "append",  required_argument, 0, 'a' },
   { "check",   optional_argument, 0, 'c' },
   { "digest",  required_argument, 0, 'd' },
   { "quiet",   no_argument,       0,  0  },
@@ -20,6 +21,7 @@ static const struct option long_options[] = {
 int main(int argc, char **argv) {
   int i, option_index;
   bool check = false, problems = false;
+  char *append = NULL;
   char *check_dir = "";
   char *digest = "md5";
   verbosity_t verbosity = NORMAL;
@@ -57,6 +59,9 @@ int main(int argc, char **argv) {
            "                       be searched there instead of the current\n"
            "                       working directory\n"
            "\n"
+           "  -a, --append file    append digests from files in archive to file\n"
+           "                       only applies with -c or --check\n"
+           "\n"
            "  --quiet              don't print OK for each successfully verified file\n"
            "\n"
            "  --status             don't output anything, status code shows success\n"
@@ -74,7 +79,7 @@ int main(int argc, char **argv) {
   // ---------------------------------------------------------------------------
 
   while (1) {
-    i = getopt_long(argc, argv, "c::d:h", long_options, &option_index);
+    i = getopt_long(argc, argv, "a:c::d:h", long_options, &option_index);
 
     if (i == -1)
       break;
@@ -89,6 +94,9 @@ int main(int argc, char **argv) {
       } else if (strcmp("status", long_options[option_index].name) == 0)
         verbosity = STATUS;
 
+      break;
+    case 'a':
+      append = optarg;
       break;
     case 'c':
       check = true;
@@ -129,7 +137,7 @@ int main(int argc, char **argv) {
     // no archive file given, read from stdin
 
     if (check) {
-      if (!archive_check(md, check_dir, NULL, verbosity))
+      if (!archive_check(md, check_dir, NULL, append, verbosity))
         problems = true;
     } else {
       archive_sum(md, NULL);
@@ -142,7 +150,7 @@ int main(int argc, char **argv) {
     if (check) {
 
       for (i = optind; i < argc; i++)
-        if (!archive_check(md, check_dir, argv[i], verbosity))
+        if (!archive_check(md, check_dir, argv[i], append, verbosity))
           problems = true;
 
     } else {

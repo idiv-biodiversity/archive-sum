@@ -11,7 +11,7 @@
 typedef enum { NORMAL, QUIET, STATUS } verbosity_t;
 
 int archive_check(const EVP_MD *md, const char *check_dir, char *archive,
-                  const verbosity_t verbosity);
+                  const char *append, const verbosity_t verbosity);
 
 int archive_sum(const EVP_MD *md, char *filename);
 

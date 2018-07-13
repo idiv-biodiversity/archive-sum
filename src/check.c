@@ -2,6 +2,7 @@
 #include "util.h"
 
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include <linux/limits.h>
 
@@ -12,11 +13,13 @@
 #include <sys/types.h>
 
 int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
-                  const verbosity_t verbosity) {
+                  const char *append, const verbosity_t verbosity) {
 
   struct archive *a;
   struct archive_entry *e;
   const char *e_pathname;
+  unsigned int i;
+  bool matches = false;
 
   unsigned int archive_md_len, original_md_len, missing = 0, warning = 0;
 
@@ -55,6 +58,17 @@ int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
   unsigned char md_value_archive[EVP_MAX_MD_SIZE];
   unsigned char md_value_original[EVP_MAX_MD_SIZE];
 
+  // open append file
+  FILE *append_f = NULL;
+  if (append) {
+    append_f = fopen(append, "a");
+    if (!append_f) {
+      perror("archive-sum: opening append file");
+      archive_read_free(a);
+      return 0;
+    }
+  }
+
   // read through archive entries
   while (archive_read_next_header(a, &e) == ARCHIVE_OK) {
     // regular files only
@@ -70,6 +84,14 @@ int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
       EVP_DigestUpdate(mdctx, buf, size);
 
     EVP_DigestFinal_ex(mdctx, md_value_archive, &archive_md_len);
+
+    // append entry
+    if (append_f) {
+      for (i = 0; i < archive_md_len; i++)
+        fprintf(append_f, "%02x", md_value_archive[i]);
+
+      fprintf(append_f, "  %s\n", archive_entry_pathname(e));
+    }
 
     // read original file
     if (strlen(check_dir) == 0) {
@@ -100,32 +122,33 @@ int archive_check(const EVP_MD *md, const char *check_dir, char *filename,
     }
 
     // compare digests
-    if (verbosity == NORMAL) {
+    matches = memcmp(md_value_archive, md_value_original, archive_md_len) == 0;
 
+    if (verbosity == NORMAL) {
       printf("%s: ", e_pathname);
-      if (memcmp(md_value_archive, md_value_original, archive_md_len) == 0) {
+      if (matches) {
         printf("OK\n");
       } else {
         warning += 1;
         printf("FAILED\n");
       }
 
-    } else if (verbosity == QUIET) {
+    } else if (verbosity == QUIET && !matches) {
+      warning += 1;
+      printf("%s: FAILED\n", e_pathname);
 
-      if (memcmp(md_value_archive, md_value_original, archive_md_len) != 0) {
-        warning += 1;
-        printf("%s: FAILED\n", e_pathname);
-      }
-
-    } else if (verbosity == STATUS) {
-
-      if (memcmp(md_value_archive, md_value_original, archive_md_len) != 0)
-        warning += 1;
+    } else if (verbosity == STATUS && !matches) {
+      warning += 1;
     }
   }
 
   // free digest
   EVP_MD_CTX_destroy(mdctx);
+
+  // free append file
+  if (append_f) {
+    fclose(append_f);
+  }
 
   // free archive
   if (archive_read_free(a) != ARCHIVE_OK) {

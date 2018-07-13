@@ -1,3 +1,9 @@
+check_append = find_program('check-append.sh')
+test(
+  'check-append', check_append,
+  env: ['MESON_SOURCE_ROOT=' + meson.source_root()]
+)
+
 check_missing = find_program('check-missing.sh')
 test(
   'check-missing', check_missing,
