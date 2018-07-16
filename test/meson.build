@@ -41,6 +41,13 @@ test(
   suite: ['style']
 )
 
+shellcheck = find_program('shellcheck.sh')
+test(
+  'shellcheck', shellcheck,
+  env: ['MESON_SOURCE_ROOT=' + meson.source_root()],
+  suite: ['style']
+)
+
 lfs_check = find_program('lfs-check.sh')
 test(
   'lfs-check', lfs_check,
