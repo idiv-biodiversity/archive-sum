@@ -1,8 +1,6 @@
-project(
-  'archive-sum',
-  'c',
-  version: run_command('git', 'describe', '--always', '--dirty').stdout().strip(),
+project('archive-sum', 'c',
   license: ['MIT'],
+  version: run_command('sh', '.version.sh').stdout().strip(),
   default_options: ['c_std=gnu11']
 )
 
