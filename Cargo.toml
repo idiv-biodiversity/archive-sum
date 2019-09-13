@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "archive-sum",
+    "archive-sum-cli",
+]
+
+[profile.release]
+lto = true
+panic = 'abort'

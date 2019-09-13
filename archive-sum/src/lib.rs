@@ -1,0 +1,46 @@
+mod error;
+mod print;
+mod verify;
+
+pub use error::Error;
+pub use error::ErrorKind;
+pub use error::Result;
+pub use print::run as print;
+pub use verify::run as verify;
+
+#[cfg(test)]
+mod test {
+    use assert_cmd::prelude::*;
+    use assert_fs::prelude::*;
+    use assert_fs::TempDir;
+    use std::error::Error;
+    use std::path::PathBuf;
+    use std::process::Command;
+
+    pub fn setup() -> Result<(TempDir, PathBuf), Box<dyn Error>> {
+        let temp = assert_fs::TempDir::new()?;
+
+        let source = temp.child("src");
+        source.create_dir_all().unwrap();
+
+        source.child("foo").write_str("foo\n")?;
+        source.child("bar").write_str("bar\n")?;
+        source.child("baz").write_str("baz\n")?;
+
+        let tarball = temp.path().join("src.tar.gz");
+
+        let mut cmd = Command::new("bsdtar");
+        cmd.arg("-C").arg(temp.path());
+        cmd.arg("-czf").arg(&tarball);
+        cmd.arg("src");
+        cmd.assert().success();
+
+        let mut cmd = Command::new("md5sum");
+        cmd.arg(&tarball);
+        let cmd = cmd.assert().success();
+        let output = cmd.get_output();
+        temp.child("src.tar.gz.md5").write_binary(&output.stdout)?;
+
+        Ok((temp, tarball))
+    }
+}

@@ -1,7 +1,9 @@
 archive-sum
 ===========
 
-Generates checksums of files within an [archive file](https://en.wikipedia.org/wiki/Archive_file) without extracting its contents.
+Generates checksums of files within an [archive
+file](https://en.wikipedia.org/wiki/Archive_file) without extracting its
+contents.
 
 [![Build Status](https://travis-ci.com/idiv-biodiversity/archive-sum.svg?branch=master)](https://travis-ci.com/idiv-biodiversity/archive-sum)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9ec02e2f096f40d596cef5eb0b43a101)](https://www.codacy.com/app/idiv-biodiversity/archive-sum?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=idiv-biodiversity/archive-sum&amp;utm_campaign=Badge_Grade)
@@ -24,7 +26,8 @@ Table of Contents
 Usage
 -----
 
-In its simplest form, **archive-sum** prints the checksums of the files within an archive:
+In its simplest form, **archive-sum** prints the checksums of the files within
+an archive:
 
 ```console
 $ archive-sum example.tar.gz
@@ -50,7 +53,9 @@ archive-sum --help
 
 ### Archive Verification
 
-The primary use of **archive-sum** is to **verify the integrity of archive files** by verifying its contents. First, so you can see and reproduce the entire workflow, lets create an archive:
+The primary use of **archive-sum** is to **verify the integrity of archive
+files** by verifying its contents. First, so you can see and reproduce the
+entire workflow, lets create an archive:
 
 ```bash
 mkdir example
@@ -60,7 +65,8 @@ echo baz > example/baz
 tar czf example.tar.gz example/
 ```
 
-We can now verify the integrity of the archive by comparing the contents of the archive with the original files:
+We can now verify the integrity of the archive by comparing the contents of the
+archive with the original files:
 
 ```console
 $ archive-sum -c example.tar.gz
@@ -69,14 +75,16 @@ example/baz: OK
 example/bar: OK
 ```
 
-As you can see from the output, the content of the archive file is exactly the same as the original. We verified the integrity of the archive file.
+As you can see from the output, the content of the archive file is exactly the
+same as the original. We verified the integrity of the archive file.
 
 Installation
 ------------
 
 ### Arch Linux
 
-Install the [**archive-sum** AUR package](https://aur.archlinux.org/packages/archive-sum/):
+Install the [**archive-sum** AUR
+package](https://aur.archlinux.org/packages/archive-sum/):
 
 ```bash
 pacaur -S archive-sum

@@ -1,8 +1,0 @@
----
-BasedOnStyle: LLVM
-ColumnLimit: 100
-IndentWidth: 2
----
-Language: Cpp
-AlwaysBreakBeforeMultilineStrings: true
-...

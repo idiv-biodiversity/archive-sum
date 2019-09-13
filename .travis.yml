@@ -1,37 +1,40 @@
 sudo: false
 
 os: linux
-dist: xenial
+dist: trusty
 
-language: python
+language: rust
 
-python: 3.7
+rust:
+  - beta
+  - nightly
 
 matrix:
   include:
-    - env: CC=gcc
-    - env: CC=clang
+    - os: linux
+      rust: stable
+      install:
+        - rustup component add clippy
+        - rustup component add rustfmt
+      script:
+        - cargo clippy --all --all-features --color always -- -D warnings
+        - cargo fmt -- --check --color always
+        - cargo test --all --all-features --color always --verbose
+  allow_failures:
+    - rust: nightly
+
+script:
+  - cargo test --all --all-features --color always --verbose
+
+cache: cargo
+
+env:
+  global:
+    - CARGO_BUILD_JOBS="2"
 
 addons:
   apt:
     packages:
       - bsdtar
-      - cppcheck
       - libarchive-dev
       - libssl-dev
-      - ninja-build
-      - valgrind
-
-install:
-  - pip --version
-  - pip install meson
-
-script:
-  - meson --version
-  - ninja --version
-  - meson build
-  - ninja -C build
-  - meson test -C build --no-suite lfs
-  - cat build/meson-logs/testlog.txt
-
-cache: pip

@@ -1,0 +1,22 @@
+[package]
+name = "archive-sum"
+version = "2.0.0"
+authors = ["Christian Krause <christian.krause@mailbox.org>"]
+description = "verify archive file integrity"
+license = "GPL-3.0-or-later"
+readme = "README.md"
+documentation = "https://github.com/idiv-biodiversity/archive-sum"
+homepage = "https://github.com/idiv-biodiversity/archive-sum"
+repository = "https://github.com/idiv-biodiversity/archive-sum"
+keywords = ["archive", "checksum", "integrity"]
+categories = ["command-line-utilities", "filesystem"]
+edition = "2018"
+
+[dependencies]
+libarchive = { git = "https://github.com/idiv-biodiversity/libarchive-rs" }
+openssl = "^0.10"
+
+[dev-dependencies]
+assert_cmd = "^0.11"
+assert_fs = "^0.11"
+predicates = "^1"
