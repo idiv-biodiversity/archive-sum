@@ -1,29 +1,34 @@
+#![deny(clippy::all)]
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+
 mod cli;
 
-use archive_sum::Result;
-use clap::value_t;
-use clap::ArgMatches;
-use libarchive::Archive;
-use openssl::hash::MessageDigest;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
+use anyhow::Result;
+use clap::value_t;
+use clap::ArgMatches;
+use libarchive::Archive;
+use openssl::hash::MessageDigest;
+
 fn main() {
-    let args = cli::build().get_matches();
+    let args = cli::args();
 
     let result = match args.subcommand() {
-        ("print", Some(args)) => run_print(args),
-        ("verify", Some(args)) => match run_verify(args) {
+        Some(("print", args)) => run_print(args),
+        Some(("verify", args)) => match run_verify(args) {
             Ok(true) => Ok(()),
             Ok(false) => std::process::exit(1),
             Err(e) => Err(e),
         },
-        (cmd, _) => unimplemented!("sub-command {}", cmd),
+        Some((cmd, _)) => unimplemented!("sub-command {}", cmd),
+        None => unreachable!("sub-command is required"),
     };
 
     if let Err(error) = result {
-        eprintln!("archive-sum: error: {}", error.message);
+        eprintln!("archive-sum: error: {}", error);
     }
 }
 
@@ -65,8 +70,8 @@ fn run_verify(args: &ArgMatches) -> Result<bool> {
         Box::new(std::io::sink())
     };
 
-    let last_quiet = args.indices_of("quiet").map(|indeces| indeces.last());
-    let last_status = args.indices_of("status").map(|indeces| indeces.last());
+    let last_quiet = args.indices_of("quiet").map(Iterator::last);
+    let last_status = args.indices_of("status").map(Iterator::last);
 
     let out: Box<dyn Write> =
         if args.is_present("quiet") || args.is_present("status") {
@@ -75,19 +80,15 @@ fn run_verify(args: &ArgMatches) -> Result<bool> {
             Box::new(std::io::stdout())
         };
 
-    // TODO this should only use 3 match arms
-    // TODO or separate out and err
     let err: Box<dyn Write> = match (last_quiet, last_status) {
         (Some(quiet), Some(status)) if quiet > status => {
             Box::new(std::io::stderr())
         }
-        (Some(_), Some(_)) => Box::new(std::io::sink()),
-        (Some(_), None) => Box::new(std::io::stderr()),
-        (None, Some(_)) => Box::new(std::io::sink()),
-        (None, None) => Box::new(std::io::stderr()),
+        (_, Some(_)) => Box::new(std::io::sink()),
+        (_, None) => Box::new(std::io::stderr()),
     };
 
-    archive_sum::verify(archive, digest, source, append, out, err)
+    archive_sum::verify(archive, digest, &source, append, out, err)
 }
 
 fn digest(args: &ArgMatches) -> MessageDigest {

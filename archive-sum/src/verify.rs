@@ -1,18 +1,21 @@
-use libarchive::Archive;
-use openssl::hash::{Hasher, MessageDigest};
 use std::convert::TryInto;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
-use crate::Result;
+use anyhow::Result;
+use libarchive::Archive;
+use openssl::hash::{Hasher, MessageDigest};
 
-// TODO zusätzliche abstraktionsschicht für out/err die halt auch terminal
-// erlaubt, als feature
+/// Perform verification.
+///
+/// # Errors
+///
+/// I/O error.
 pub fn run(
     archive: Archive,
     digest: MessageDigest,
-    source: Option<PathBuf>,
+    source: &Option<PathBuf>,
     mut append: impl Write,
     mut out: impl Write,
     mut err: impl Write,
@@ -129,9 +132,9 @@ mod tests {
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, source, &mut append, &mut out, &mut err);
+            run(archive, digest, &source, &mut append, &mut out, &mut err);
 
-        assert_eq!(result, Ok(true));
+        assert!(result.unwrap());
 
         let append = std::str::from_utf8(&append).unwrap();
         let out = std::str::from_utf8(&out).unwrap();
@@ -177,9 +180,9 @@ mod tests {
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, source, &mut append, &mut out, &mut err);
+            run(archive, digest, &source, &mut append, &mut out, &mut err);
 
-        assert_eq!(result, Ok(false));
+        assert!(!result.unwrap());
 
         let out = std::str::from_utf8(&out).unwrap();
 
@@ -215,9 +218,9 @@ mod tests {
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, source, &mut append, &mut out, &mut err);
+            run(archive, digest, &source, &mut append, &mut out, &mut err);
 
-        assert_eq!(result, Ok(false));
+        assert!(!result.unwrap());
 
         let out = std::str::from_utf8(&out).unwrap();
 

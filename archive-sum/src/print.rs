@@ -1,9 +1,14 @@
-use libarchive::Archive;
-use openssl::hash::{Hasher, MessageDigest};
 use std::io::Write;
 
-use crate::Result;
+use anyhow::Result;
+use libarchive::Archive;
+use openssl::hash::{Hasher, MessageDigest};
 
+/// Perform verification.
+///
+/// # Errors
+///
+/// I/O error.
 pub fn run(
     archive: Archive,
     digest: MessageDigest,

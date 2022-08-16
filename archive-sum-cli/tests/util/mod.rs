@@ -1,9 +1,10 @@
-use assert_cmd::prelude::*;
-use assert_fs::prelude::*;
-use assert_fs::TempDir;
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::Command;
+
+use assert_cmd::prelude::*;
+use assert_fs::prelude::*;
+use assert_fs::TempDir;
 
 pub fn setup() -> Result<(TempDir, PathBuf), Box<dyn Error>> {
     let temp = assert_fs::TempDir::new()?;

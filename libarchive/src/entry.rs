@@ -1,9 +1,9 @@
-use libarchive_sys as ffi;
 use std::ffi::CStr;
 use std::io::Read;
 
-use crate::Error;
-use crate::Result;
+use libarchive_sys as ffi;
+
+use anyhow::Result;
 
 #[derive(PartialEq)]
 pub enum FileType {

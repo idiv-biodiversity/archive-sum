@@ -1,21 +1,21 @@
-mod error;
+#![deny(clippy::all)]
+#![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+
 mod print;
 mod verify;
 
-pub use error::Error;
-pub use error::ErrorKind;
-pub use error::Result;
 pub use print::run as print;
 pub use verify::run as verify;
 
 #[cfg(test)]
 mod test {
-    use assert_cmd::prelude::*;
-    use assert_fs::prelude::*;
-    use assert_fs::TempDir;
     use std::error::Error;
     use std::path::PathBuf;
     use std::process::Command;
+
+    use assert_cmd::prelude::*;
+    use assert_fs::prelude::*;
+    use assert_fs::TempDir;
 
     pub fn setup() -> Result<(TempDir, PathBuf), Box<dyn Error>> {
         let temp = assert_fs::TempDir::new()?;

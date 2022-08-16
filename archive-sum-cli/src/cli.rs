@@ -1,12 +1,12 @@
-use atty::Stream;
-use clap::{arg_enum, crate_description, crate_version};
-use clap::{App, AppSettings, Arg, SubCommand};
-use std::error::Error;
 use std::fs::{self, File};
 use std::path::Path;
 
+use atty::Stream;
+use clap::{arg_enum, crate_description, crate_version};
+use clap::{AppSettings, Arg, ArgMatches, Command, SubCommand};
+
 arg_enum! {
-    #[derive(PartialEq, Debug)]
+    #[derive(PartialEq, Eq, Debug)]
     pub enum Digest {
         MD5,
         SHA1,
@@ -17,19 +17,17 @@ arg_enum! {
     }
 }
 
-pub fn build() -> App<'static, 'static> {
-    let color = if atty::is(Stream::Stdout) {
-        AppSettings::ColoredHelp
-    } else {
-        AppSettings::ColorNever
-    };
+pub fn args() -> ArgMatches {
+    build().get_matches()
+}
 
+pub fn build() -> Command<'static> {
     // ------------------------------------------------------------------------
     // arguments
     // ------------------------------------------------------------------------
 
     let append = Arg::with_name("append")
-        .short("a")
+        .short('a')
         .long("append")
         .help("append digests to file")
         .takes_value(true)
@@ -42,12 +40,12 @@ pub fn build() -> App<'static, 'static> {
         .validator(is_file);
 
     let digest = Arg::with_name("digest")
-        .short("d")
+        .short('d')
         .long("digest")
         .help("digest algorithm to use")
         .takes_value(true)
         .case_insensitive(true)
-        .possible_values(&Digest::variants())
+        .possible_values(Digest::variants())
         .default_value("MD5");
 
     let quiet = Arg::with_name("quiet")
@@ -73,7 +71,6 @@ pub fn build() -> App<'static, 'static> {
 
     let print = SubCommand::with_name("print")
         .about("print archive content checksums")
-        .help_short("?")
         .help_message("show this help output")
         .arg(&append)
         .arg(&archive)
@@ -81,7 +78,6 @@ pub fn build() -> App<'static, 'static> {
 
     let verify = SubCommand::with_name("verify")
         .about("verify archive contents")
-        .help_short("?")
         .help_message("show this help output")
         .arg(&append)
         .arg(&archive)
@@ -94,15 +90,10 @@ pub fn build() -> App<'static, 'static> {
     // put it all together
     // ------------------------------------------------------------------------
 
-    App::new("archive-sum")
+    Command::new("archive-sum")
         .version(crate_version!())
         .about(crate_description!())
-        .global_setting(color)
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .setting(AppSettings::VersionlessSubcommands)
-        .help_short("?")
-        .help_message("show this help output")
-        .version_message("show version")
         .subcommand(print)
         .subcommand(verify)
 }
@@ -111,7 +102,7 @@ pub fn build() -> App<'static, 'static> {
 // argument validator
 // ----------------------------------------------------------------------------
 
-fn is_dir(s: String) -> Result<(), String> {
+fn is_dir(s: &str) -> Result<(), String> {
     let path = Path::new(&s);
 
     if !path.exists() {
@@ -119,13 +110,13 @@ fn is_dir(s: String) -> Result<(), String> {
     } else if !path.is_dir() {
         Err(format!("not a directory: {:?}", path))
     } else if let Err(error) = fs::read_dir(path) {
-        Err(error.description().to_string())
+        Err(format!("{}", error))
     } else {
         Ok(())
     }
 }
 
-fn is_file(s: String) -> Result<(), String> {
+fn is_file(s: &str) -> Result<(), String> {
     let path = Path::new(&s);
 
     if !path.exists() {
@@ -133,7 +124,7 @@ fn is_file(s: String) -> Result<(), String> {
     } else if !path.is_file() {
         Err(format!("not a file: {:?}", path))
     } else if let Err(error) = File::open(s) {
-        Err(error.description().to_string())
+        Err(format!("{}", error))
     } else {
         Ok(())
     }

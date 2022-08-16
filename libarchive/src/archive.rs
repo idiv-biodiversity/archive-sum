@@ -1,9 +1,10 @@
-use libarchive_sys as ffi;
 use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::fs;
 use std::os::raw::c_char;
 use std::path::Path;
+
+use libarchive_sys as ffi;
 
 use crate::Entry;
 use crate::Error;
@@ -144,10 +145,12 @@ impl Iterator for Entries {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::process::Command;
+
     use assert_cmd::prelude::*;
     use assert_fs::prelude::*;
-    use std::process::Command;
+
+    use super::*;
 
     #[test]
     fn archive_read_entries() {

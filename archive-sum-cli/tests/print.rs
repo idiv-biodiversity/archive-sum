@@ -1,8 +1,9 @@
+use std::error::Error;
+use std::process::Command;
+
 use assert_cmd::prelude::*;
 use assert_fs::prelude::*;
 use predicates::prelude::*;
-use std::error::Error;
-use std::process::Command;
 
 mod util;
 
