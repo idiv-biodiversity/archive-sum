@@ -1,9 +1,0 @@
-[package]
-name = "libarchive-sys"
-version = "1.0.0"
-authors = ["Christian Krause <christian.krause@mailbox.org>"]
-build = "build.rs"
-edition = "2021"
-
-[build-dependencies]
-bindgen = "0.51"

@@ -4,54 +4,50 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use anyhow::Result;
-use libarchive::Archive;
-use openssl::hash::{Hasher, MessageDigest};
+use tar::Archive;
 
-/// Perform verification.
-///
-/// # Errors
-///
-/// I/O error.
-pub fn run(
-    archive: Archive,
-    digest: MessageDigest,
+pub fn run<Digest, R: Read>(
+    archive: &mut Archive<R>,
     source: &Option<PathBuf>,
     mut append: impl Write,
     mut out: impl Write,
     mut err: impl Write,
-) -> Result<bool> {
+) -> Result<bool>
+where
+    Digest: digest::Digest + Write,
+{
     let mut missing = 0;
     let mut failures = 0;
 
-    for entry in archive {
-        if !entry.is_file() {
+    for entry in archive.entries()? {
+        let mut entry = entry?;
+
+        if !entry.header().entry_type().is_file() {
             continue;
         }
 
-        let mut hasher_archive = Hasher::new(digest)?;
+        let mut hasher_archive = Digest::new();
 
-        for block in entry.blocks() {
-            hasher_archive.update(block?)?;
-        }
+        std::io::copy(&mut entry, &mut hasher_archive)?;
 
-        let hash_archive = hasher_archive.finish()?;
+        let hash_archive = hasher_archive.finalize();
         let hash_archive: String = hash_archive
             .iter()
             .map(|byte| format!("{:02x}", byte))
             .collect();
 
-        writeln!(append, "{}  {}", hash_archive, entry.path())?;
+        let path = entry.path()?;
 
-        let path = entry.path();
+        writeln!(append, "{}  {}", hash_archive, path.display())?;
 
         let source_file = if let Some(ref source) = source {
             source.join(path)
         } else {
-            PathBuf::from(&path)
+            PathBuf::from(path)
         };
 
         if !source_file.exists() {
-            writeln!(err, "{}: MISSING", entry.path())?;
+            writeln!(err, "{}: MISSING", source_file.display())?;
             missing += 1;
             continue;
         }
@@ -60,37 +56,37 @@ pub fn run(
             use std::os::unix::fs::MetadataExt;
             let meta = fs::metadata(&source_file)?;
             let block_size = meta.blksize();
-            block_size.try_into().unwrap_or(Archive::DEFAULT_BLOCK_SIZE)
+            block_size.try_into().unwrap_or(crate::DEFAULT_BLOCK_SIZE)
         } else {
-            Archive::DEFAULT_BLOCK_SIZE
+            crate::DEFAULT_BLOCK_SIZE
         };
 
-        let mut hasher_source = Hasher::new(digest)?;
+        let mut hasher_source = Digest::new();
 
-        let mut source_file = File::open(source_file)?;
+        let mut source_file_f = File::open(&source_file)?;
 
         let mut buf = vec![0; block_size];
 
         loop {
-            let nbytes = source_file.read(&mut buf)?;
+            let nbytes = source_file_f.read(&mut buf)?;
 
             if nbytes > 0 {
-                hasher_source.update(&buf[..nbytes])?;
+                hasher_source.update(&buf[..nbytes]);
             } else {
                 break;
             }
         }
 
-        let hash_source = hasher_source.finish()?;
+        let hash_source = hasher_source.finalize();
         let hash_source: String = hash_source
             .iter()
             .map(|byte| format!("{:02x}", byte))
             .collect();
 
         if hash_archive == hash_source {
-            writeln!(out, "{}: OK", entry.path())?;
+            writeln!(out, "{}: OK", source_file.display())?;
         } else {
-            writeln!(err, "{}: FAILED", entry.path())?;
+            writeln!(err, "{}: FAILED", source_file.display())?;
             failures += 1;
         }
     }

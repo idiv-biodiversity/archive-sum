@@ -1,35 +1,31 @@
-use std::io::Write;
+use std::io::{Read, Write};
 
 use anyhow::Result;
-use libarchive::Archive;
-use openssl::hash::{Hasher, MessageDigest};
+use tar::Archive;
 
-/// Perform verification.
-///
-/// # Errors
-///
-/// I/O error.
-pub fn run(
-    archive: Archive,
-    digest: MessageDigest,
+pub fn run<Digest, R: Read>(
+    mut archive: Archive<R>,
     mut out: impl Write,
-) -> Result<()> {
-    for entry in archive {
-        if !entry.is_file() {
+) -> Result<()>
+where
+    Digest: digest::Digest + Write,
+{
+    for entry in archive.entries()? {
+        let mut entry = entry?;
+
+        if !entry.header().entry_type().is_file() {
             continue;
         }
 
-        let mut hasher = Hasher::new(digest)?;
+        let mut hasher = Digest::new();
 
-        for block in entry.blocks() {
-            hasher.update(block?)?;
-        }
+        std::io::copy(&mut entry, &mut hasher)?;
 
-        let hash = hasher.finish()?;
+        let hash = hasher.finalize();
         let hash: String =
             hash.iter().map(|byte| format!("{:02x}", byte)).collect();
 
-        writeln!(out, "{}  {}", hash, entry.path())?;
+        writeln!(out, "{}  {}", hash, entry.path()?.display())?;
     }
 
     Ok(())

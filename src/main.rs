@@ -3,15 +3,16 @@
 
 mod cli;
 
+use std::fs::File;
 use std::fs::OpenOptions;
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::Path;
 
 use anyhow::Result;
 use clap::value_t;
 use clap::ArgMatches;
-use libarchive::Archive;
-use openssl::hash::MessageDigest;
+use digest::Digest;
+use tar::Archive;
 
 fn main() {
     let args = cli::args();
@@ -34,8 +35,11 @@ fn main() {
 
 fn run_print(args: &ArgMatches) -> Result<()> {
     let archive = match args.value_of("archive") {
-        Some(archive) => Archive::open(archive)?,
-        None => Archive::stdin()?,
+        Some(archive) => {
+            let f = File::open(archive)?;
+            Archive::new(f)
+        }
+        None => Archive::new(io::stdin()?),
     };
 
     let append = args
@@ -91,11 +95,11 @@ fn run_verify(args: &ArgMatches) -> Result<bool> {
     archive_sum::verify(archive, digest, &source, append, out, err)
 }
 
-fn digest(args: &ArgMatches) -> MessageDigest {
+fn digest(args: &ArgMatches) -> impl Digest {
     let digest = value_t!(args.value_of("digest"), cli::Digest).unwrap();
 
     match digest {
-        cli::Digest::MD5 => MessageDigest::md5(),
+        cli::Digest::MD5 => md5::Md5,
         cli::Digest::SHA1 => MessageDigest::sha1(),
         cli::Digest::SHA224 => MessageDigest::sha224(),
         cli::Digest::SHA256 => MessageDigest::sha256(),

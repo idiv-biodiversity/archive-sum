@@ -4,6 +4,8 @@
 mod print;
 mod verify;
 
+pub const DEFAULT_BLOCK_SIZE: usize = 65536;
+
 pub use print::run as print;
 pub use verify::run as verify;
 
