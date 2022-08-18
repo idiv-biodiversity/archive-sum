@@ -31,13 +31,29 @@ fn main() {
     }
 }
 
-fn run_print(args: &ArgMatches) -> Result<()> {
-    let archive: Box<dyn Read> = match args.value_of("archive") {
-        Some(archive) => Box::new(File::open(archive)?),
+fn archive_from(args: &ArgMatches) -> Result<Archive<Box<dyn Read>>> {
+    let source: Box<dyn Read> = match args.value_of("archive") {
+        Some(archive) => {
+            let file = File::open(archive)?;
+
+            if archive.ends_with(".tar.gz") || archive.ends_with(".tgz") {
+                // we have gzipped tarball
+                Box::new(flate2::read::GzDecoder::new(file))
+            } else {
+                // we have plain tarball
+                Box::new(file)
+            }
+        }
+
+        // no argument -> use STDIN
         None => Box::new(io::stdin()),
     };
 
-    let archive: Archive<Box<dyn Read>> = Archive::new(archive);
+    Ok(Archive::new(source))
+}
+
+fn run_print(args: &ArgMatches) -> Result<()> {
+    let archive = archive_from(args)?;
 
     let append = args
         .value_of("append")
@@ -53,12 +69,7 @@ fn run_print(args: &ArgMatches) -> Result<()> {
 }
 
 fn run_verify(args: &ArgMatches) -> Result<bool> {
-    let archive: Box<dyn Read> = match args.value_of("archive") {
-        Some(archive) => Box::new(File::open(archive)?),
-        None => Box::new(io::stdin()),
-    };
-
-    let archive: Archive<Box<dyn Read>> = Archive::new(archive);
+    let archive = archive_from(args)?;
 
     let source = args
         .value_of("source")
