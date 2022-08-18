@@ -1,19 +1,135 @@
-use std::fs::{self, File};
-use std::path::Path;
+use std::fs::{self, File, OpenOptions};
+use std::io::{self, Read, Write};
+use std::path::{Path, PathBuf};
 
+use anyhow::Result;
 use atty::Stream;
 use clap::{crate_description, crate_version};
-use clap::{AppSettings, Arg, ArgMatches, Command, SubCommand};
+use clap::{Arg, ArgMatches, Command};
+use tar::Archive;
 
-pub fn args() -> ArgMatches {
-    build().get_matches()
+/// CLI arguments.
+pub struct Arguments {
+    archive: Option<String>,
+    append: Option<String>,
+    check: Option<PathBuf>,
+    last_quiet: Option<usize>,
+    last_status: Option<usize>,
 }
 
-pub fn build() -> Command<'static> {
-    // ------------------------------------------------------------------------
-    // arguments
-    // ------------------------------------------------------------------------
+impl TryFrom<ArgMatches> for Arguments {
+    type Error = anyhow::Error;
 
+    fn try_from(args: ArgMatches) -> Result<Self> {
+        let archive = args.value_of("archive").map(ToOwned::to_owned);
+        let append = args.value_of("append").map(ToOwned::to_owned);
+        let check = args.value_of("check").map(PathBuf::from);
+
+        let last_quiet = args.indices_of("quiet").and_then(Iterator::last);
+        let last_status = args.indices_of("status").and_then(Iterator::last);
+
+        Ok(Self {
+            archive,
+            append,
+            check,
+            last_quiet,
+            last_status,
+        })
+    }
+}
+
+impl Arguments {
+    pub const fn verify(&self) -> bool {
+        self.check.is_some()
+    }
+
+    pub fn verify_dir(&self) -> Option<&Path> {
+        self.check.as_deref()
+    }
+
+    pub fn archive(&self) -> Result<Archive<Box<dyn Read>>> {
+        let source: Box<dyn Read> = match self.archive {
+            Some(ref archive) => {
+                let archive = Path::new(archive);
+                let file = File::open(archive)?;
+
+                if archive.extension().map_or(false, |ext| {
+                    ext.eq_ignore_ascii_case("gz")
+                        || ext.eq_ignore_ascii_case("tgz")
+                }) {
+                    // we have gzipped tarball
+                    Box::new(flate2::read::GzDecoder::new(file))
+                } else {
+                    // we have plain tarball
+                    Box::new(file)
+                }
+            }
+
+            // no argument -> use STDIN
+            None => Box::new(io::stdin()),
+        };
+
+        Ok(Archive::new(source))
+    }
+
+    pub fn append(&self) -> Result<Option<Box<dyn Write>>> {
+        let append: Option<Box<dyn Write>> = if let Some(file) = &self.append {
+            let file = OpenOptions::new().append(true).open(file)?;
+            Some(Box::new(file))
+        } else {
+            None
+        };
+
+        Ok(append)
+    }
+
+    pub fn append_or_sink(&self) -> Result<Box<dyn Write>> {
+        self.append()
+            .map(|o| o.unwrap_or_else(|| Box::new(io::sink())))
+    }
+
+    pub fn append_or_stdout(&self) -> Result<Box<dyn Write>> {
+        self.append()
+            .map(|o| o.unwrap_or_else(|| Box::new(io::stdout())))
+    }
+
+    pub fn verify_out(&self) -> Box<dyn Write> {
+        if self.last_quiet.is_some() || self.last_status.is_some() {
+            // /dev/null if quiet or status
+            Box::new(std::io::sink())
+        } else {
+            // STDOUT otherwise
+            Box::new(std::io::stdout())
+        }
+    }
+
+    pub fn verify_err(&self) -> Box<dyn Write> {
+        match (self.last_quiet, self.last_status) {
+            (Some(quiet), Some(status)) if quiet > status => {
+                // STDERR if quiet beats status
+                Box::new(std::io::stderr())
+            }
+
+            // /dev/null if status
+            (_, Some(_)) => Box::new(std::io::sink()),
+
+            // STDERR otherwise
+            (_, None) => Box::new(std::io::stderr()),
+        }
+    }
+}
+
+/// Returns parsed arguments.
+pub fn args() -> Result<Arguments> {
+    let cli = build();
+    let args = cli.get_matches();
+    let arguments = Arguments::try_from(args)?;
+
+    Ok(arguments)
+}
+
+/// Returns command-line parser.
+pub fn build() -> Command<'static> {
     let append = Arg::with_name("append")
         .short('a')
         .long("append")
@@ -27,6 +143,15 @@ pub fn build() -> Command<'static> {
         .required(atty::is(Stream::Stdin))
         .validator(is_file);
 
+    let check = Arg::with_name("check")
+        .short('c')
+        .long("check")
+        .value_name("dir")
+        .min_values(0)
+        .max_values(1)
+        .help("verify archive file against source directory")
+        .validator(is_dir);
+
     let quiet = Arg::with_name("quiet")
         .long("quiet")
         .help("don't print OK for each successfully verified file")
@@ -37,42 +162,14 @@ pub fn build() -> Command<'static> {
         .help("don't output anything, status code shows success")
         .display_order(1);
 
-    let source = Arg::with_name("source")
-        .long("source")
-        .help("source of the archive")
-        .takes_value(true)
-        .value_name("dir")
-        .validator(is_dir);
-
-    // ------------------------------------------------------------------------
-    // commands
-    // ------------------------------------------------------------------------
-
-    let print = SubCommand::with_name("print")
-        .about("print archive content checksums")
-        .help_message("show this help output")
-        .arg(&append)
-        .arg(&archive);
-
-    let verify = SubCommand::with_name("verify")
-        .about("verify archive contents")
-        .help_message("show this help output")
-        .arg(&append)
-        .arg(&archive)
-        .arg(&quiet)
-        .arg(&source)
-        .arg(&status);
-
-    // ------------------------------------------------------------------------
-    // put it all together
-    // ------------------------------------------------------------------------
-
     Command::new("archive-sum")
         .version(crate_version!())
         .about(crate_description!())
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .subcommand(print)
-        .subcommand(verify)
+        .arg(append)
+        .arg(check)
+        .arg(archive)
+        .arg(quiet)
+        .arg(status)
 }
 
 // ----------------------------------------------------------------------------

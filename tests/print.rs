@@ -12,7 +12,7 @@ fn stdout() -> Result<(), Box<dyn Error>> {
     let (temp, tarball) = util::setup()?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("print").arg(&tarball);
+    cmd.arg(&tarball);
 
     cmd.assert()
         .success()
@@ -39,7 +39,6 @@ fn append() -> Result<(), Box<dyn Error>> {
     let digest_file = temp.child("src.tar.gz.md5");
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("print");
     cmd.arg("--append").arg(digest_file.path());
     cmd.arg(&tarball);
 

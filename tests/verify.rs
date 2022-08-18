@@ -12,8 +12,7 @@ fn success() -> Result<(), Box<dyn Error>> {
     let (temp, tarball) = util::setup()?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("verify");
-    cmd.arg("--source").arg(temp.path());
+    cmd.arg("--check").arg(temp.path());
     cmd.arg(&tarball);
 
     cmd.assert()
@@ -35,8 +34,7 @@ fn failed() -> Result<(), Box<dyn Error>> {
     temp.child("src").child("bar").write_str("bar\nbar\n")?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("verify");
-    cmd.arg("--source").arg(temp.path());
+    cmd.arg("--check").arg(temp.path());
     cmd.arg(&tarball);
 
     cmd.assert()
@@ -58,8 +56,7 @@ fn missing() -> Result<(), Box<dyn Error>> {
     std::fs::remove_file(temp.child("src").child("foo").path())?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("verify");
-    cmd.arg("--source").arg(temp.path());
+    cmd.arg("--check").arg(temp.path());
     cmd.arg(&tarball);
 
     cmd.assert()
@@ -82,9 +79,8 @@ fn quiet() -> Result<(), Box<dyn Error>> {
     temp.child("src").child("bar").write_str("bar\nbar\n")?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("verify");
     cmd.arg("--quiet");
-    cmd.arg("--source").arg(temp.path());
+    cmd.arg("--check").arg(temp.path());
     cmd.arg(&tarball);
 
     cmd.assert()
@@ -108,9 +104,8 @@ fn status() -> Result<(), Box<dyn Error>> {
     temp.child("src").child("bar").write_str("bar\nbar\n")?;
 
     let mut cmd = Command::cargo_bin("archive-sum")?;
-    cmd.arg("verify");
     cmd.arg("--status");
-    cmd.arg("--source").arg(temp.path());
+    cmd.arg("--check").arg(temp.path());
     cmd.arg(&tarball);
 
     cmd.assert()

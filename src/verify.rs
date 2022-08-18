@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 use std::fs::{self, File};
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use tar::Archive;
@@ -13,7 +13,7 @@ use tar::Archive;
 /// Errors when I/O errors happen.
 pub fn run<Digest>(
     mut archive: Archive<impl Read>,
-    source: &Option<PathBuf>,
+    source: Option<&Path>,
     mut append: impl Write,
     mut out: impl Write,
     mut err: impl Write,
@@ -45,7 +45,7 @@ where
 
         writeln!(append, "{}  {}", hash_archive, path.display())?;
 
-        let source_file = if let Some(ref source) = source {
+        let source_file = if let Some(source) = source {
             source.join(path)
         } else {
             PathBuf::from(path)
@@ -131,13 +131,13 @@ mod tests {
 
         let archive = File::open(tarball).unwrap();
         let archive = Archive::new(archive);
-        let source = Some(temp.path().to_path_buf());
+        let source = Some(temp.path());
         let mut append = Vec::new();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
 
         assert!(result.unwrap());
 
@@ -179,13 +179,13 @@ mod tests {
 
         let archive = File::open(tarball).unwrap();
         let archive = Archive::new(archive);
-        let source = Some(temp.path().to_path_buf());
+        let source = Some(temp.path());
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
 
         assert!(!result.unwrap());
 
@@ -217,13 +217,13 @@ mod tests {
 
         let archive = File::open(tarball).unwrap();
         let archive = Archive::new(archive);
-        let source = Some(temp.path().to_path_buf());
+        let source = Some(temp.path());
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
 
         assert!(!result.unwrap());
 
