@@ -42,17 +42,22 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::fs::File;
+
+    use md5::Md5;
     use predicates::prelude::*;
+
+    use super::*;
 
     #[test]
     fn print() {
         let (temp, tarball) = crate::test::setup().unwrap();
 
-        let archive = Archive::open(&tarball).unwrap();
+        let archive = File::open(tarball).unwrap();
+        let archive = Archive::new(archive);
         let mut result = Vec::new();
 
-        run(archive, MessageDigest::md5(), &mut result).unwrap();
+        run::<Md5>(archive, &mut result).unwrap();
 
         let result = std::str::from_utf8(&result).unwrap();
 

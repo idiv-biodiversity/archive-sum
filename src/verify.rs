@@ -117,23 +117,27 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::fs::File;
+
     use assert_fs::prelude::*;
+    use md5::Md5;
     use predicates::prelude::*;
+
+    use super::*;
 
     #[test]
     fn ok() {
         let (temp, tarball) = crate::test::setup().unwrap();
 
-        let archive = Archive::open(&tarball).unwrap();
-        let digest = MessageDigest::md5();
+        let archive = File::open(tarball).unwrap();
+        let archive = Archive::new(archive);
         let source = Some(temp.path().to_path_buf());
         let mut append = Vec::new();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
 
         assert!(result.unwrap());
 
@@ -173,15 +177,15 @@ mod tests {
 
         std::fs::remove_file(temp.child("src").child("foo").path()).unwrap();
 
-        let archive = Archive::open(&tarball).unwrap();
-        let digest = MessageDigest::md5();
+        let archive = File::open(tarball).unwrap();
+        let archive = Archive::new(archive);
         let source = Some(temp.path().to_path_buf());
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
 
         assert!(!result.unwrap());
 
@@ -211,15 +215,15 @@ mod tests {
             .write_str("bar\nbar\n")
             .unwrap();
 
-        let archive = Archive::open(&tarball).unwrap();
-        let digest = MessageDigest::md5();
+        let archive = File::open(tarball).unwrap();
+        let archive = Archive::new(archive);
         let source = Some(temp.path().to_path_buf());
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
 
         let result =
-            run(archive, digest, &source, &mut append, &mut out, &mut err);
+            run::<Md5>(archive, &source, &mut append, &mut out, &mut err);
 
         assert!(!result.unwrap());
 

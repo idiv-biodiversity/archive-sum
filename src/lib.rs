@@ -29,11 +29,11 @@ mod test {
         source.child("bar").write_str("bar\n")?;
         source.child("baz").write_str("baz\n")?;
 
-        let tarball = temp.path().join("src.tar.gz");
+        let tarball = temp.path().join("src.tar");
 
         let mut cmd = Command::new("bsdtar");
         cmd.arg("-C").arg(temp.path());
-        cmd.arg("-czf").arg(&tarball);
+        cmd.arg("-cf").arg(&tarball);
         cmd.arg("src");
         cmd.assert().success();
 
@@ -41,7 +41,7 @@ mod test {
         cmd.arg(&tarball);
         let cmd = cmd.assert().success();
         let output = cmd.get_output();
-        temp.child("src.tar.gz.md5").write_binary(&output.stdout)?;
+        temp.child("src.tar.md5").write_binary(&output.stdout)?;
 
         Ok((temp, tarball))
     }

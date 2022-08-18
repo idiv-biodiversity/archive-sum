@@ -2,20 +2,8 @@ use std::fs::{self, File};
 use std::path::Path;
 
 use atty::Stream;
-use clap::{arg_enum, crate_description, crate_version};
+use clap::{crate_description, crate_version};
 use clap::{AppSettings, Arg, ArgMatches, Command, SubCommand};
-
-arg_enum! {
-    #[derive(PartialEq, Eq, Debug)]
-    pub enum Digest {
-        MD5,
-        SHA1,
-        SHA224,
-        SHA256,
-        SHA384,
-        SHA512,
-    }
-}
 
 pub fn args() -> ArgMatches {
     build().get_matches()
@@ -29,7 +17,7 @@ pub fn build() -> Command<'static> {
     let append = Arg::with_name("append")
         .short('a')
         .long("append")
-        .help("append digests to file")
+        .help("append hashes to file")
         .takes_value(true)
         .value_name("file")
         .validator(is_file);
@@ -38,15 +26,6 @@ pub fn build() -> Command<'static> {
         .help("archive file")
         .required(atty::is(Stream::Stdin))
         .validator(is_file);
-
-    let digest = Arg::with_name("digest")
-        .short('d')
-        .long("digest")
-        .help("digest algorithm to use")
-        .takes_value(true)
-        .case_insensitive(true)
-        .possible_values(Digest::variants())
-        .default_value("MD5");
 
     let quiet = Arg::with_name("quiet")
         .long("quiet")
@@ -73,15 +52,13 @@ pub fn build() -> Command<'static> {
         .about("print archive content checksums")
         .help_message("show this help output")
         .arg(&append)
-        .arg(&archive)
-        .arg(&digest);
+        .arg(&archive);
 
     let verify = SubCommand::with_name("verify")
         .about("verify archive contents")
         .help_message("show this help output")
         .arg(&append)
         .arg(&archive)
-        .arg(&digest)
         .arg(&quiet)
         .arg(&source)
         .arg(&status);
