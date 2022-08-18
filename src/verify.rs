@@ -6,8 +6,13 @@ use std::path::PathBuf;
 use anyhow::Result;
 use tar::Archive;
 
-pub fn run<Digest, R: Read>(
-    archive: &mut Archive<R>,
+/// Runs verification.
+///
+/// # Errors
+///
+/// Errors when I/O errors happen.
+pub fn run<Digest>(
+    mut archive: Archive<impl Read>,
     source: &Option<PathBuf>,
     mut append: impl Write,
     mut out: impl Write,

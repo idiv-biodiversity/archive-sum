@@ -3,15 +3,13 @@
 
 mod cli;
 
-use std::fs::File;
-use std::fs::OpenOptions;
-use std::io::{self, Write};
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Write};
 use std::path::Path;
 
 use anyhow::Result;
-use clap::value_t;
 use clap::ArgMatches;
-use digest::Digest;
+use md5::Md5;
 use tar::Archive;
 
 fn main() {
@@ -34,35 +32,33 @@ fn main() {
 }
 
 fn run_print(args: &ArgMatches) -> Result<()> {
-    let archive = match args.value_of("archive") {
-        Some(archive) => {
-            let f = File::open(archive)?;
-            Archive::new(f)
-        }
-        None => Archive::new(io::stdin()?),
+    let archive: Box<dyn Read> = match args.value_of("archive") {
+        Some(archive) => Box::new(File::open(archive)?),
+        None => Box::new(io::stdin()),
     };
+
+    let archive: Archive<Box<dyn Read>> = Archive::new(archive);
 
     let append = args
         .value_of("append")
         .map(|file| Path::new(file).to_path_buf());
 
-    let digest = digest(args);
-
-    if let Some(file) = append {
-        let file = OpenOptions::new().append(true).open(file)?;
-        archive_sum::print(archive, digest, file)
+    let append: Box<dyn Write> = if let Some(file) = append {
+        Box::new(OpenOptions::new().append(true).open(file)?)
     } else {
-        archive_sum::print(archive, digest, &mut std::io::stdout())
-    }
+        Box::new(std::io::stdout())
+    };
+
+    archive_sum::print::<Md5>(archive, append)
 }
 
 fn run_verify(args: &ArgMatches) -> Result<bool> {
-    let archive = match args.value_of("archive") {
-        Some(archive) => Archive::open(archive)?,
-        None => Archive::stdin()?,
+    let archive: Box<dyn Read> = match args.value_of("archive") {
+        Some(archive) => Box::new(File::open(archive)?),
+        None => Box::new(io::stdin()),
     };
 
-    let digest = digest(args);
+    let archive: Archive<Box<dyn Read>> = Archive::new(archive);
 
     let source = args
         .value_of("source")
@@ -92,18 +88,5 @@ fn run_verify(args: &ArgMatches) -> Result<bool> {
         (_, None) => Box::new(std::io::stderr()),
     };
 
-    archive_sum::verify(archive, digest, &source, append, out, err)
-}
-
-fn digest(args: &ArgMatches) -> impl Digest {
-    let digest = value_t!(args.value_of("digest"), cli::Digest).unwrap();
-
-    match digest {
-        cli::Digest::MD5 => md5::Md5,
-        cli::Digest::SHA1 => MessageDigest::sha1(),
-        cli::Digest::SHA224 => MessageDigest::sha224(),
-        cli::Digest::SHA256 => MessageDigest::sha256(),
-        cli::Digest::SHA384 => MessageDigest::sha384(),
-        cli::Digest::SHA512 => MessageDigest::sha512(),
-    }
+    archive_sum::verify::<Md5>(archive, &source, append, out, err)
 }

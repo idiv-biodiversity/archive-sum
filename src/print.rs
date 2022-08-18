@@ -3,8 +3,13 @@ use std::io::{Read, Write};
 use anyhow::Result;
 use tar::Archive;
 
-pub fn run<Digest, R: Read>(
-    mut archive: Archive<R>,
+/// Runs print.
+///
+/// # Errors
+///
+/// Errors when I/O errors happen.
+pub fn run<Digest>(
+    mut archive: Archive<impl Read>,
     mut out: impl Write,
 ) -> Result<()>
 where
