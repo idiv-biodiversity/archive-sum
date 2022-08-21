@@ -33,6 +33,7 @@ where
 
         let mut hasher_archive = Digest::new();
 
+        // TODO ensure this uses optimal fs block size of archive
         std::io::copy(&mut entry, &mut hasher_archive)?;
 
         let hash_archive = hasher_archive.finalize();
@@ -117,8 +118,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-
     use assert_fs::prelude::*;
     use md5::Md5;
     use predicates::prelude::*;
@@ -175,7 +174,7 @@ mod tests {
     fn missing() {
         let (temp, tarball) = crate::test::setup().unwrap();
 
-        std::fs::remove_file(temp.child("src").child("foo").path()).unwrap();
+        fs::remove_file(temp.child("src").child("foo").path()).unwrap();
 
         let archive = File::open(tarball).unwrap();
         let archive = Archive::new(archive);

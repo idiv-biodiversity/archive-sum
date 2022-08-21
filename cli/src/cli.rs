@@ -48,8 +48,8 @@ impl Arguments {
     }
 
     pub fn archive(&self) -> Result<Archive<Box<dyn Read>>> {
-        let source: Box<dyn Read> = match self.archive {
-            Some(ref archive) => {
+        let source: Box<dyn Read> = match &self.archive {
+            Some(archive) => {
                 let archive = Path::new(archive);
                 let file = File::open(archive)?;
 
@@ -133,13 +133,18 @@ pub fn build() -> Command<'static> {
     let append = Arg::with_name("append")
         .short('a')
         .long("append")
-        .help("append hashes to file")
+        .help("append hashes to `<file>`")
+        .long_help("Append hashes to `<file>`.")
         .takes_value(true)
         .value_name("file")
         .validator(is_file);
 
     let archive = Arg::with_name("archive")
         .help("archive file")
+        .long_help(
+            "Input archive file. This argument is required only if STDIN is a \
+             TTY."
+        )
         .required(atty::is(Stream::Stdin))
         .validator(is_file);
 
@@ -149,17 +154,29 @@ pub fn build() -> Command<'static> {
         .value_name("dir")
         .min_values(0)
         .max_values(1)
-        .help("verify archive file against source directory")
+        .help("verify against source directory")
+        .long_help(
+            "Verify the input archive file against given source or current \
+             working directory. You may need to use a `--` separator if you \
+             do not specify a `<dir>` and this is the last argument, as in \
+             `archive-sum -c -- archive.tar`, but not if this is not the last \
+             argument, as in `archive-sum -c -a archive.tar.md5 archive.tar`.",
+        )
         .validator(is_dir);
 
     let quiet = Arg::with_name("quiet")
         .long("quiet")
-        .help("don't print OK for each successfully verified file")
+        .help("don't print 'OK' for each successfully verified file")
+        .long_help(
+            "Do not print 'OK' for each successfully verified file. Only \
+             'MISSING' and 'FAILED' are shown.",
+        )
         .display_order(1);
 
     let status = Arg::with_name("status")
         .long("status")
         .help("don't output anything, status code shows success")
+        .long_help("Do not output anything, the status code shows success.")
         .display_order(1);
 
     Command::new("archive-sum")
@@ -170,6 +187,12 @@ pub fn build() -> Command<'static> {
         .arg(archive)
         .arg(quiet)
         .arg(status)
+        .mut_arg("help", |a| {
+            a.short('?').help("print help").long_help("Print help.")
+        })
+        .mut_arg("version", |a| {
+            a.help("print version").long_help("Print version.")
+        })
 }
 
 // ----------------------------------------------------------------------------
