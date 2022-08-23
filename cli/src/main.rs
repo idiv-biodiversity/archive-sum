@@ -4,9 +4,14 @@
 mod cli;
 
 use anyhow::Result;
+
+#[cfg(feature = "md-5")]
 use md5::Md5;
 
 use cli::Arguments;
+
+#[cfg(not(any(feature = "md-5", feature = "sha1", feature = "sha2")))]
+compile_error!("there must be at least one digest feature");
 
 fn main() -> Result<()> {
     let args = cli::args()?;

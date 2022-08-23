@@ -8,6 +8,39 @@ use clap::{crate_description, crate_version};
 use clap::{Arg, ArgMatches, Command};
 use tar::Archive;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Digest {
+    #[cfg(feature = "md-5")]
+    MD5,
+
+    #[cfg(feature = "sha1")]
+    SHA1,
+    // SHA224,
+    // SHA256,
+    // SHA384,
+    // SHA512,
+}
+
+impl clap::ValueEnum for Digest {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            #[cfg(feature = "md-5")]
+            Self::MD5,
+            #[cfg(feature = "sha1")]
+            Self::SHA1,
+        ]
+    }
+
+    fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
+        match self {
+            #[cfg(feature = "md-5")]
+            Self::MD5 => Some(clap::PossibleValue::new("md5")),
+            #[cfg(feature = "sha1")]
+            Self::SHA1 => Some(clap::PossibleValue::new("sha1")),
+        }
+    }
+}
+
 /// CLI arguments.
 pub struct Arguments {
     archive: Option<String>,
@@ -135,7 +168,6 @@ pub fn build() -> Command<'static> {
         .long("append")
         .help("append hashes to `<file>`")
         .long_help("Append hashes to `<file>`.")
-        .takes_value(true)
         .value_name("file")
         .validator(is_file);
 
@@ -164,6 +196,18 @@ pub fn build() -> Command<'static> {
         )
         .validator(is_dir);
 
+    let digest = Arg::with_name("digest")
+        // TODO default value!
+        .short('d')
+        .long("digest")
+        .help("digest algorithm")
+        .long_help(
+            "Use this digest algorithm. These algorithms are optional \
+             dependencies/features that may be chosen during compilation.",
+        )
+        .takes_value(true)
+        .value_parser(clap::builder::EnumValueParser::<Digest>::new());
+
     let quiet = Arg::with_name("quiet")
         .long("quiet")
         .help("don't print 'OK' for each successfully verified file")
@@ -183,8 +227,9 @@ pub fn build() -> Command<'static> {
         .version(crate_version!())
         .about(crate_description!())
         .arg(append)
-        .arg(check)
         .arg(archive)
+        .arg(check)
+        .arg(digest)
         .arg(quiet)
         .arg(status)
         .mut_arg("help", |a| {
