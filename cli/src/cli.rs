@@ -1,164 +1,65 @@
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, Read, Write};
-use std::path::{Path, PathBuf};
+use std::fs::{self, File};
+use std::path::Path;
 
-use anyhow::Result;
 use atty::Stream;
 use clap::{crate_description, crate_version};
-use clap::{Arg, ArgMatches, Command};
-use tar::Archive;
+use clap::{Arg, Command, PossibleValue, ValueEnum};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Digest {
-    #[cfg(feature = "md-5")]
+    #[cfg(feature = "md5")]
     MD5,
 
     #[cfg(feature = "sha1")]
     SHA1,
-    // SHA224,
-    // SHA256,
-    // SHA384,
-    // SHA512,
+
+    #[cfg(feature = "sha2")]
+    SHA224,
+
+    #[cfg(feature = "sha2")]
+    SHA256,
+
+    #[cfg(feature = "sha2")]
+    SHA384,
+
+    #[cfg(feature = "sha2")]
+    SHA512,
 }
 
-impl clap::ValueEnum for Digest {
+impl ValueEnum for Digest {
     fn value_variants<'a>() -> &'a [Self] {
         &[
-            #[cfg(feature = "md-5")]
+            #[cfg(feature = "md5")]
             Self::MD5,
             #[cfg(feature = "sha1")]
             Self::SHA1,
+            #[cfg(feature = "sha2")]
+            Self::SHA224,
+            #[cfg(feature = "sha2")]
+            Self::SHA256,
+            #[cfg(feature = "sha2")]
+            Self::SHA384,
+            #[cfg(feature = "sha2")]
+            Self::SHA512,
         ]
     }
 
-    fn to_possible_value<'a>(&self) -> Option<clap::PossibleValue<'a>> {
+    fn to_possible_value<'a>(&self) -> Option<PossibleValue<'a>> {
         match self {
-            #[cfg(feature = "md-5")]
-            Self::MD5 => Some(clap::PossibleValue::new("md5")),
+            #[cfg(feature = "md5")]
+            Self::MD5 => Some(PossibleValue::new("md5")),
             #[cfg(feature = "sha1")]
-            Self::SHA1 => Some(clap::PossibleValue::new("sha1")),
+            Self::SHA1 => Some(PossibleValue::new("sha1")),
+            #[cfg(feature = "sha2")]
+            Self::SHA224 => Some(PossibleValue::new("sha224")),
+            #[cfg(feature = "sha2")]
+            Self::SHA256 => Some(PossibleValue::new("sha256")),
+            #[cfg(feature = "sha2")]
+            Self::SHA384 => Some(PossibleValue::new("sha384")),
+            #[cfg(feature = "sha2")]
+            Self::SHA512 => Some(PossibleValue::new("sha512")),
         }
     }
-}
-
-/// CLI arguments.
-pub struct Arguments {
-    archive: Option<String>,
-    append: Option<String>,
-    check: Option<PathBuf>,
-    last_quiet: Option<usize>,
-    last_status: Option<usize>,
-}
-
-impl TryFrom<ArgMatches> for Arguments {
-    type Error = anyhow::Error;
-
-    fn try_from(args: ArgMatches) -> Result<Self> {
-        let archive = args.value_of("archive").map(ToOwned::to_owned);
-        let append = args.value_of("append").map(ToOwned::to_owned);
-        let check = args.value_of("check").map(PathBuf::from);
-
-        let last_quiet = args.indices_of("quiet").and_then(Iterator::last);
-        let last_status = args.indices_of("status").and_then(Iterator::last);
-
-        Ok(Self {
-            archive,
-            append,
-            check,
-            last_quiet,
-            last_status,
-        })
-    }
-}
-
-impl Arguments {
-    pub const fn verify(&self) -> bool {
-        self.check.is_some()
-    }
-
-    pub fn verify_dir(&self) -> Option<&Path> {
-        self.check.as_deref()
-    }
-
-    pub fn archive(&self) -> Result<Archive<Box<dyn Read>>> {
-        let source: Box<dyn Read> = match &self.archive {
-            Some(archive) => {
-                let archive = Path::new(archive);
-                let file = File::open(archive)?;
-
-                if archive.extension().map_or(false, |ext| {
-                    ext.eq_ignore_ascii_case("gz")
-                        || ext.eq_ignore_ascii_case("tgz")
-                }) {
-                    // we have gzipped tarball
-                    Box::new(flate2::read::GzDecoder::new(file))
-                } else {
-                    // we have plain tarball
-                    Box::new(file)
-                }
-            }
-
-            // no argument -> use STDIN
-            None => Box::new(io::stdin()),
-        };
-
-        Ok(Archive::new(source))
-    }
-
-    pub fn append(&self) -> Result<Option<Box<dyn Write>>> {
-        let append: Option<Box<dyn Write>> = if let Some(file) = &self.append {
-            let file = OpenOptions::new().append(true).open(file)?;
-            Some(Box::new(file))
-        } else {
-            None
-        };
-
-        Ok(append)
-    }
-
-    pub fn append_or_sink(&self) -> Result<Box<dyn Write>> {
-        self.append()
-            .map(|o| o.unwrap_or_else(|| Box::new(io::sink())))
-    }
-
-    pub fn append_or_stdout(&self) -> Result<Box<dyn Write>> {
-        self.append()
-            .map(|o| o.unwrap_or_else(|| Box::new(io::stdout())))
-    }
-
-    pub fn verify_out(&self) -> Box<dyn Write> {
-        if self.last_quiet.is_some() || self.last_status.is_some() {
-            // /dev/null if quiet or status
-            Box::new(std::io::sink())
-        } else {
-            // STDOUT otherwise
-            Box::new(std::io::stdout())
-        }
-    }
-
-    pub fn verify_err(&self) -> Box<dyn Write> {
-        match (self.last_quiet, self.last_status) {
-            (Some(quiet), Some(status)) if quiet > status => {
-                // STDERR if quiet beats status
-                Box::new(std::io::stderr())
-            }
-
-            // /dev/null if status
-            (_, Some(_)) => Box::new(std::io::sink()),
-
-            // STDERR otherwise
-            (_, None) => Box::new(std::io::stderr()),
-        }
-    }
-}
-
-/// Returns parsed arguments.
-pub fn args() -> Result<Arguments> {
-    let cli = build();
-    let args = cli.get_matches();
-    let arguments = Arguments::try_from(args)?;
-
-    Ok(arguments)
 }
 
 /// Returns command-line parser.
@@ -196,8 +97,15 @@ pub fn build() -> Command<'static> {
         )
         .validator(is_dir);
 
+    let first_digest_variant = Digest::value_variants()
+        .iter()
+        .next()
+        .expect("at least one digest feature should be required")
+        .to_possible_value()
+        .expect("there should be no skipped digest variants")
+        .get_name();
+
     let digest = Arg::with_name("digest")
-        // TODO default value!
         .short('d')
         .long("digest")
         .help("digest algorithm")
@@ -206,6 +114,7 @@ pub fn build() -> Command<'static> {
              dependencies/features that may be chosen during compilation.",
         )
         .takes_value(true)
+        .default_value(first_digest_variant)
         .value_parser(clap::builder::EnumValueParser::<Digest>::new());
 
     let quiet = Arg::with_name("quiet")
