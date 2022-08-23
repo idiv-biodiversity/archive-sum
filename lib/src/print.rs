@@ -3,18 +3,22 @@ use std::io::{Read, Write};
 use anyhow::Result;
 use tar::Archive;
 
-/// Runs print.
+use crate::DynDigest;
+use crate::DEFAULT_BLOCK_SIZE;
+
+/// Prints hashes of entries in `archive` to `out`.
+///
+/// For file-typed entries in `archive` a hash is computed with the `hasher`
+/// digest algorithm and written to `out` mimicking tools like `md5sum`.
 ///
 /// # Errors
 ///
-/// Errors when I/O errors happen.
-pub fn run<Digest>(
+/// Returns `Err` if reading `archive` fails or if writing to `out` fails.
+pub fn run(
     mut archive: Archive<impl Read>,
+    hasher: &mut dyn DynDigest,
     mut out: impl Write,
-) -> Result<()>
-where
-    Digest: digest::Digest + Write,
-{
+) -> Result<()> {
     for entry in archive.entries()? {
         let mut entry = entry?;
 
@@ -22,11 +26,19 @@ where
             continue;
         }
 
-        let mut hasher = Digest::new();
+        let mut buf = vec![0; DEFAULT_BLOCK_SIZE];
 
-        std::io::copy(&mut entry, &mut hasher)?;
+        loop {
+            let nbytes = entry.read(&mut buf)?;
 
-        let hash = hasher.finalize();
+            if nbytes > 0 {
+                hasher.update(&buf[..nbytes]);
+            } else {
+                break;
+            }
+        }
+
+        let hash = hasher.finalize_reset();
         let hash: String =
             hash.iter().map(|byte| format!("{:02x}", byte)).collect();
 
@@ -44,7 +56,7 @@ where
 mod tests {
     use std::fs::File;
 
-    use md5::Md5;
+    use digest::Digest;
     use predicates::prelude::*;
 
     use super::*;
@@ -56,8 +68,9 @@ mod tests {
         let archive = File::open(tarball).unwrap();
         let archive = Archive::new(archive);
         let mut result = Vec::new();
+        let mut hasher = md5::Md5::new();
 
-        run::<Md5>(archive, &mut result).unwrap();
+        run(archive, &mut hasher, &mut result).unwrap();
 
         let result = std::str::from_utf8(&result).unwrap();
 

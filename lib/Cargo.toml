@@ -1,10 +1,10 @@
 [package]
 name = "archive-sum"
-version = "2.0.0"
+version = "0.1.0"
 authors = ["Christian Krause <christian.krause@mailbox.org>"]
 description = "verify archive file integrity"
 license = "GPL-3.0-or-later"
-readme = "README.md"
+readme = "../README.md"
 documentation = "https://github.com/idiv-biodiversity/archive-sum"
 homepage = "https://github.com/idiv-biodiversity/archive-sum"
 repository = "https://github.com/idiv-biodiversity/archive-sum"

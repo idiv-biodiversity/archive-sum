@@ -2,15 +2,26 @@
 name = "archive-sum-cli"
 version = "2.0.0"
 authors = ["Christian Krause <christian.krause@mailbox.org>"]
-description = "verify archive file integrity"
+description = "verify archive file integrity (CLI)"
 license = "GPL-3.0-or-later"
-readme = "README.md"
+readme = "../README.md"
 documentation = "https://github.com/idiv-biodiversity/archive-sum"
 homepage = "https://github.com/idiv-biodiversity/archive-sum"
 repository = "https://github.com/idiv-biodiversity/archive-sum"
 keywords = ["archive", "checksum", "integrity"]
 categories = ["command-line-utilities", "filesystem"]
 edition = "2021"
+
+[[bin]]
+name = "archive-sum"
+path = "src/main.rs"
+doc = false
+
+[features]
+default = ["md5", "sha1", "sha2"]
+md5 = ["clap-digest/md5"]
+sha1 = ["clap-digest/sha1"]
+sha2 = ["clap-digest/sha2"]
 
 [dependencies]
 anyhow = "1"
@@ -23,21 +34,9 @@ tar = "0.4"
 version = "3"
 features = ["cargo"]
 
-[dependencies.md-5]
-version = "0.10"
-optional = true
-
-[dependencies.sha1]
-version = "0.10"
-optional = true
-
-[dependencies.sha2]
-version = "0.10"
-optional = true
-
-[features]
-default = ["md5", "sha1", "sha2"]
-md5 = ["dep:md-5"]
+[dependencies.clap-digest]
+version = "0.1"
+default-features = false
 
 [dev-dependencies]
 assert_cmd = "2"

@@ -3,10 +3,10 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use archive_sum::DynDigest;
 use clap::ArgMatches;
+use clap_digest::Digest;
 use tar::Archive;
-
-use crate::cli::Digest;
 
 /// Returns parsed arguments.
 pub fn get() -> Arguments {
@@ -19,7 +19,8 @@ pub fn get() -> Arguments {
 pub struct Arguments {
     archive: Option<String>,
     append: Option<String>,
-    check: Option<PathBuf>,
+    check: bool,
+    check_source: Option<PathBuf>,
     digest: Digest,
     last_quiet: Option<usize>,
     last_status: Option<usize>,
@@ -29,7 +30,8 @@ impl From<ArgMatches> for Arguments {
     fn from(args: ArgMatches) -> Self {
         let archive = args.value_of("archive").map(ToOwned::to_owned);
         let append = args.value_of("append").map(ToOwned::to_owned);
-        let check = args.value_of("check").map(PathBuf::from);
+        let check = args.is_present("check");
+        let check_source = args.value_of("check").map(PathBuf::from);
         let digest = *args
             .get_one::<Digest>("digest")
             .expect("digest should have default value");
@@ -41,6 +43,7 @@ impl From<ArgMatches> for Arguments {
             archive,
             append,
             check,
+            check_source,
             digest,
             last_quiet,
             last_status,
@@ -50,15 +53,15 @@ impl From<ArgMatches> for Arguments {
 
 impl Arguments {
     pub const fn verify(&self) -> bool {
-        self.check.is_some()
+        self.check
     }
 
-    pub const fn digest(&self) -> Digest {
-        self.digest
+    pub fn digest(&self) -> Box<dyn DynDigest> {
+        self.digest.into()
     }
 
     pub fn verify_dir(&self) -> Option<&Path> {
-        self.check.as_deref()
+        self.check_source.as_deref()
     }
 
     pub fn archive(&self) -> Result<Archive<Box<dyn Read>>> {

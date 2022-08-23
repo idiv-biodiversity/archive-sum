@@ -9,6 +9,8 @@ pub const DEFAULT_BLOCK_SIZE: usize = 65536;
 pub use print::run as print;
 pub use verify::run as verify;
 
+pub use digest::DynDigest;
+
 #[cfg(test)]
 mod test {
     use std::error::Error;

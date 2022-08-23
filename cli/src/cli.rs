@@ -3,64 +3,8 @@ use std::path::Path;
 
 use atty::Stream;
 use clap::{crate_description, crate_version};
-use clap::{Arg, Command, PossibleValue, ValueEnum};
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum Digest {
-    #[cfg(feature = "md5")]
-    MD5,
-
-    #[cfg(feature = "sha1")]
-    SHA1,
-
-    #[cfg(feature = "sha2")]
-    SHA224,
-
-    #[cfg(feature = "sha2")]
-    SHA256,
-
-    #[cfg(feature = "sha2")]
-    SHA384,
-
-    #[cfg(feature = "sha2")]
-    SHA512,
-}
-
-impl ValueEnum for Digest {
-    fn value_variants<'a>() -> &'a [Self] {
-        &[
-            #[cfg(feature = "md5")]
-            Self::MD5,
-            #[cfg(feature = "sha1")]
-            Self::SHA1,
-            #[cfg(feature = "sha2")]
-            Self::SHA224,
-            #[cfg(feature = "sha2")]
-            Self::SHA256,
-            #[cfg(feature = "sha2")]
-            Self::SHA384,
-            #[cfg(feature = "sha2")]
-            Self::SHA512,
-        ]
-    }
-
-    fn to_possible_value<'a>(&self) -> Option<PossibleValue<'a>> {
-        match self {
-            #[cfg(feature = "md5")]
-            Self::MD5 => Some(PossibleValue::new("md5")),
-            #[cfg(feature = "sha1")]
-            Self::SHA1 => Some(PossibleValue::new("sha1")),
-            #[cfg(feature = "sha2")]
-            Self::SHA224 => Some(PossibleValue::new("sha224")),
-            #[cfg(feature = "sha2")]
-            Self::SHA256 => Some(PossibleValue::new("sha256")),
-            #[cfg(feature = "sha2")]
-            Self::SHA384 => Some(PossibleValue::new("sha384")),
-            #[cfg(feature = "sha2")]
-            Self::SHA512 => Some(PossibleValue::new("sha512")),
-        }
-    }
-}
+use clap::{Arg, Command, ValueEnum};
+use clap_digest::Digest;
 
 /// Returns command-line parser.
 pub fn build() -> Command<'static> {
@@ -68,7 +12,12 @@ pub fn build() -> Command<'static> {
         .short('a')
         .long("append")
         .help("append hashes to `<file>`")
-        .long_help("Append hashes to `<file>`.")
+        .long_help(
+            "Append hashes to `<file>`. For normal printing `archive-sum -a \
+             sums archive` is equivalent to `archive-sum archive >> sums`, \
+             for verification with `-c` hashes are written to `<file>` \
+             additionally to the verification process.",
+        )
         .value_name("file")
         .validator(is_file);
 

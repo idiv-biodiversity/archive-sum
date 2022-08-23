@@ -6,21 +6,36 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use tar::Archive;
 
-/// Runs verification.
+use crate::DynDigest;
+use crate::DEFAULT_BLOCK_SIZE;
+
+/// Verifies `archive` against a `source` directory.
+///
+/// Each file-typed entry in `archive` is compared using the `hasher` digest
+/// algorithm with its source in the `source` directory. If `source` is `None`,
+/// the current working directory is used to look for sources.
+///
+/// The `Write` implementations are used for:
+///
+/// - writes hashes of entries in `archive` to `append`
+/// - writes successfully verified files to `out`
+/// - writes errors to `err`, including failed verifications and missing files
+///
+/// This largely mimics tools like `md5sum`. To silence any of the writers,
+/// [`std::io::sink()`] can be used.
 ///
 /// # Errors
 ///
-/// Errors when I/O errors happen.
-pub fn run<Digest>(
+/// Returns `Err` if reading `archive` fails or if writing to any of `append`,
+/// `out`, or `err` fails.
+pub fn run(
     mut archive: Archive<impl Read>,
     source: Option<&Path>,
+    hasher: &mut dyn DynDigest,
     mut append: impl Write,
     mut out: impl Write,
     mut err: impl Write,
-) -> Result<bool>
-where
-    Digest: digest::Digest + Write,
-{
+) -> Result<bool> {
     let mut missing = 0;
     let mut failures = 0;
 
@@ -31,12 +46,19 @@ where
             continue;
         }
 
-        let mut hasher_archive = Digest::new();
+        let mut buf = vec![0; DEFAULT_BLOCK_SIZE];
 
-        // TODO ensure this uses optimal fs block size of archive
-        std::io::copy(&mut entry, &mut hasher_archive)?;
+        loop {
+            let nbytes = entry.read(&mut buf)?;
 
-        let hash_archive = hasher_archive.finalize();
+            if nbytes > 0 {
+                hasher.update(&buf[..nbytes]);
+            } else {
+                break;
+            }
+        }
+
+        let hash_archive = hasher.finalize_reset();
         let hash_archive: String = hash_archive
             .iter()
             .map(|byte| format!("{:02x}", byte))
@@ -67,8 +89,6 @@ where
             crate::DEFAULT_BLOCK_SIZE
         };
 
-        let mut hasher_source = Digest::new();
-
         let mut source_file_f = File::open(&source_file)?;
 
         let mut buf = vec![0; block_size];
@@ -77,13 +97,13 @@ where
             let nbytes = source_file_f.read(&mut buf)?;
 
             if nbytes > 0 {
-                hasher_source.update(&buf[..nbytes]);
+                hasher.update(&buf[..nbytes]);
             } else {
                 break;
             }
         }
 
-        let hash_source = hasher_source.finalize();
+        let hash_source = hasher.finalize_reset();
         let hash_source: String = hash_source
             .iter()
             .map(|byte| format!("{:02x}", byte))
@@ -119,7 +139,6 @@ where
 #[cfg(test)]
 mod tests {
     use assert_fs::prelude::*;
-    use md5::Md5;
     use predicates::prelude::*;
 
     use super::*;
@@ -134,9 +153,16 @@ mod tests {
         let mut append = Vec::new();
         let mut out = Vec::new();
         let mut err = Vec::new();
+        let mut hasher = md5::Md5::default();
 
-        let result =
-            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
+        let result = run(
+            archive,
+            source,
+            &mut hasher,
+            &mut append,
+            &mut out,
+            &mut err,
+        );
 
         assert!(result.unwrap());
 
@@ -182,9 +208,16 @@ mod tests {
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
+        let mut hasher = md5::Md5::default();
 
-        let result =
-            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
+        let result = run(
+            archive,
+            source,
+            &mut hasher,
+            &mut append,
+            &mut out,
+            &mut err,
+        );
 
         assert!(!result.unwrap());
 
@@ -220,9 +253,16 @@ mod tests {
         let mut append = std::io::sink();
         let mut out = Vec::new();
         let mut err = Vec::new();
+        let mut hasher = md5::Md5::default();
 
-        let result =
-            run::<Md5>(archive, source, &mut append, &mut out, &mut err);
+        let result = run(
+            archive,
+            source,
+            &mut hasher,
+            &mut append,
+            &mut out,
+            &mut err,
+        );
 
         assert!(!result.unwrap());
 
