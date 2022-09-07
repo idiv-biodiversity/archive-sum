@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
-use tar::Archive;
+use archive_rs::Archive;
 
 use crate::DynDigest;
 use crate::DEFAULT_BLOCK_SIZE;
@@ -29,7 +29,7 @@ use crate::DEFAULT_BLOCK_SIZE;
 /// Returns `Err` if reading `archive` fails or if writing to any of `append`,
 /// `out`, or `err` fails.
 pub fn run(
-    mut archive: Archive<impl Read>,
+    mut archive: Archive,
     source: Option<&Path>,
     hasher: &mut dyn DynDigest,
     mut append: impl Write,
@@ -42,7 +42,7 @@ pub fn run(
     for entry in archive.entries()? {
         let mut entry = entry?;
 
-        if !entry.header().entry_type().is_file() {
+        if !entry.entry_type().is_file() {
             continue;
         }
 
@@ -147,8 +147,7 @@ mod tests {
     fn ok() {
         let (temp, tarball) = crate::test::setup().unwrap();
 
-        let archive = File::open(tarball).unwrap();
-        let archive = Archive::new(archive);
+        let archive = Archive::open(tarball).unwrap();
         let source = Some(temp.path());
         let mut append = Vec::new();
         let mut out = Vec::new();
@@ -202,8 +201,7 @@ mod tests {
 
         fs::remove_file(temp.child("src").child("foo").path()).unwrap();
 
-        let archive = File::open(tarball).unwrap();
-        let archive = Archive::new(archive);
+        let archive = Archive::open(tarball).unwrap();
         let source = Some(temp.path());
         let mut append = std::io::sink();
         let mut out = Vec::new();
@@ -247,8 +245,7 @@ mod tests {
             .write_str("bar\nbar\n")
             .unwrap();
 
-        let archive = File::open(tarball).unwrap();
-        let archive = Archive::new(archive);
+        let archive = Archive::open(tarball).unwrap();
         let source = Some(temp.path());
         let mut append = std::io::sink();
         let mut out = Vec::new();

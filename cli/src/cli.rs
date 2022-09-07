@@ -1,7 +1,6 @@
 use std::fs::{self, File};
 use std::path::Path;
 
-use atty::Stream;
 use clap::{crate_description, crate_version};
 use clap::{Arg, Command, ValueEnum};
 use clap_digest::Digest;
@@ -23,11 +22,8 @@ pub fn build() -> Command<'static> {
 
     let archive = Arg::with_name("archive")
         .help("archive file")
-        .long_help(
-            "Input archive file. This argument is required only if STDIN is a \
-             TTY."
-        )
-        .required(atty::is(Stream::Stdin))
+        .long_help("Input archive file.")
+        .required_unless_present("list-digests")
         .validator(is_file);
 
     let check = Arg::with_name("check")
@@ -54,17 +50,8 @@ pub fn build() -> Command<'static> {
         .expect("there should be no skipped digest variants")
         .get_name();
 
-    let digest = Arg::with_name("digest")
-        .short('d')
-        .long("digest")
-        .help("digest algorithm")
-        .long_help(
-            "Use this digest algorithm. These algorithms are optional \
-             dependencies/features that may be chosen during compilation.",
-        )
-        .takes_value(true)
-        .default_value(first_digest_variant)
-        .value_parser(clap::builder::EnumValueParser::<Digest>::new());
+    let digest =
+        clap_digest::arg::digest().default_value(first_digest_variant);
 
     let quiet = Arg::with_name("quiet")
         .long("quiet")
@@ -88,6 +75,7 @@ pub fn build() -> Command<'static> {
         .arg(archive)
         .arg(check)
         .arg(digest)
+        .arg(clap_digest::arg::list_digests())
         .arg(quiet)
         .arg(status)
         .mut_arg("help", |a| {

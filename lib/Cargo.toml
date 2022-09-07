@@ -14,8 +14,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
+archive-rs = { path = "../../../archive-rs" }
 digest = "0.10"
-tar = "0.4"
 
 [dev-dependencies]
 assert_cmd = "2"

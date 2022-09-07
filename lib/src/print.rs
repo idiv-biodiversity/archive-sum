@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
 use anyhow::Result;
-use tar::Archive;
+use archive_rs::Archive;
 
 use crate::DynDigest;
 use crate::DEFAULT_BLOCK_SIZE;
@@ -15,14 +15,14 @@ use crate::DEFAULT_BLOCK_SIZE;
 ///
 /// Returns `Err` if reading `archive` fails or if writing to `out` fails.
 pub fn run(
-    mut archive: Archive<impl Read>,
+    mut archive: Archive,
     hasher: &mut dyn DynDigest,
     mut out: impl Write,
 ) -> Result<()> {
     for entry in archive.entries()? {
         let mut entry = entry?;
 
-        if !entry.header().entry_type().is_file() {
+        if !entry.entry_type().is_file() {
             continue;
         }
 
@@ -54,8 +54,6 @@ pub fn run(
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-
     use digest::Digest;
     use predicates::prelude::*;
 
@@ -65,8 +63,7 @@ mod tests {
     fn print() {
         let (temp, tarball) = crate::test::setup().unwrap();
 
-        let archive = File::open(tarball).unwrap();
-        let archive = Archive::new(archive);
+        let archive = Archive::open(tarball).unwrap();
         let mut result = Vec::new();
         let mut hasher = md5::Md5::new();
 

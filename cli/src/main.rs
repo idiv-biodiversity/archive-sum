@@ -7,6 +7,7 @@ mod cli;
 use anyhow::Result;
 
 use args::Arguments;
+use clap::ValueEnum;
 
 #[cfg(not(any(feature = "md5", feature = "sha1", feature = "sha2")))]
 compile_error!("there must be at least one digest feature");
@@ -14,7 +15,13 @@ compile_error!("there must be at least one digest feature");
 fn main() {
     let args = args::get();
 
-    let result = if args.verify() {
+    let result = if args.list_digests() {
+        for digest in clap_digest::Digest::value_variants() {
+            println!("{digest}");
+        }
+
+        Ok(())
+    } else if args.verify() {
         match run_verify(&args) {
             Ok(true) => Ok(()),
             Ok(false) => std::process::exit(1),

@@ -1,12 +1,12 @@
-use std::fs::{File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::fs::OpenOptions;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use archive_rs::Archive;
 use archive_sum::DynDigest;
 use clap::ArgMatches;
 use clap_digest::Digest;
-use tar::Archive;
 
 /// Returns parsed arguments.
 pub fn get() -> Arguments {
@@ -22,6 +22,7 @@ pub struct Arguments {
     check: bool,
     check_source: Option<PathBuf>,
     digest: Digest,
+    list_digests: bool,
     last_quiet: Option<usize>,
     last_status: Option<usize>,
 }
@@ -30,11 +31,12 @@ impl From<ArgMatches> for Arguments {
     fn from(args: ArgMatches) -> Self {
         let archive = args.value_of("archive").map(ToOwned::to_owned);
         let append = args.value_of("append").map(ToOwned::to_owned);
-        let check = args.is_present("check");
+        let check = args.contains_id("check");
         let check_source = args.value_of("check").map(PathBuf::from);
         let digest = *args
             .get_one::<Digest>("digest")
             .expect("digest should have default value");
+        let list_digests = args.contains_id("list-digests");
 
         let last_quiet = args.indices_of("quiet").and_then(Iterator::last);
         let last_status = args.indices_of("status").and_then(Iterator::last);
@@ -45,6 +47,7 @@ impl From<ArgMatches> for Arguments {
             check,
             check_source,
             digest,
+            list_digests,
             last_quiet,
             last_status,
         }
@@ -52,6 +55,10 @@ impl From<ArgMatches> for Arguments {
 }
 
 impl Arguments {
+    pub const fn list_digests(&self) -> bool {
+        self.list_digests
+    }
+
     pub const fn verify(&self) -> bool {
         self.check
     }
@@ -64,29 +71,10 @@ impl Arguments {
         self.check_source.as_deref()
     }
 
-    pub fn archive(&self) -> Result<Archive<Box<dyn Read>>> {
-        let source: Box<dyn Read> = match &self.archive {
-            Some(archive) => {
-                let archive = Path::new(archive);
-                let file = File::open(archive)?;
-
-                if archive.extension().map_or(false, |ext| {
-                    ext.eq_ignore_ascii_case("gz")
-                        || ext.eq_ignore_ascii_case("tgz")
-                }) {
-                    // we have gzipped tarball
-                    Box::new(flate2::read::GzDecoder::new(file))
-                } else {
-                    // we have plain tarball
-                    Box::new(file)
-                }
-            }
-
-            // no argument -> use STDIN
-            None => Box::new(io::stdin()),
-        };
-
-        Ok(Archive::new(source))
+    pub fn archive(&self) -> Result<Archive> {
+        let archive = self.archive.as_ref().expect("required argument");
+        let archive = Archive::open(archive)?;
+        Ok(archive)
     }
 
     pub fn append(&self) -> Result<Option<Box<dyn Write>>> {

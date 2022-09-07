@@ -25,17 +25,16 @@ sha2 = ["clap-digest/sha2"]
 
 [dependencies]
 anyhow = "1"
+archive-rs = { path = "../../../archive-rs" }
 archive-sum = { path = "../lib" }
 atty = "0.2"
-flate2 = "1"
-tar = "0.4"
 
 [dependencies.clap]
 version = "3"
 features = ["cargo"]
 
 [dependencies.clap-digest]
-version = "0.1"
+version = "0.2"
 default-features = false
 
 [dev-dependencies]
