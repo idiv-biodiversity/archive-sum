@@ -25,19 +25,18 @@ sha2 = ["clap-digest/sha2"]
 
 [dependencies]
 anyhow = "1"
-archive-rs = { path = "../../../archive-rs" }
+archive-rs = "0.0.1"
 archive-sum = { path = "../lib" }
-atty = "0.2"
 
 [dependencies.clap]
-version = "3"
-features = ["cargo"]
+version = "4"
+features = ["cargo", "deprecated", "wrap_help"]
 
 [dependencies.clap-digest]
-version = "0.2"
+version = "0.3"
 default-features = false
 
 [dev-dependencies]
 assert_cmd = "2"
 assert_fs = "1"
-predicates = "2"
+predicates = "3"

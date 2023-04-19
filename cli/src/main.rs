@@ -32,7 +32,7 @@ fn main() {
     };
 
     if let Err(error) = result {
-        eprintln!("archive-sum: error: {}", error);
+        eprintln!("archive-sum: error: {error}");
         std::process::exit(1)
     }
 }

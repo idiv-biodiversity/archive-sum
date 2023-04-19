@@ -61,7 +61,7 @@ pub fn run(
         let hash_archive = hasher.finalize_reset();
         let hash_archive: String = hash_archive
             .iter()
-            .map(|byte| format!("{:02x}", byte))
+            .map(|byte| format!("{byte:02x}"))
             .collect();
 
         let path = entry.path()?;
@@ -106,7 +106,7 @@ pub fn run(
         let hash_source = hasher.finalize_reset();
         let hash_source: String = hash_source
             .iter()
-            .map(|byte| format!("{:02x}", byte))
+            .map(|byte| format!("{byte:02x}"))
             .collect();
 
         if hash_archive == hash_source {
@@ -118,11 +118,11 @@ pub fn run(
     }
 
     if missing > 0 {
-        writeln!(err, "archive-sum: WARNING: {} MISSING file(s)", missing)?;
+        writeln!(err, "archive-sum: WARNING: {missing} MISSING file(s)")?;
     }
 
     if failures > 0 {
-        writeln!(err, "archive-sum: FATAL: {} FAILED checksum(s)", failures)?;
+        writeln!(err, "archive-sum: FATAL: {failures} FAILED checksum(s)")?;
     }
 
     if failures == 0 && missing == 0 {

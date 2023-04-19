@@ -40,7 +40,7 @@ pub fn run(
 
         let hash = hasher.finalize_reset();
         let hash: String =
-            hash.iter().map(|byte| format!("{:02x}", byte)).collect();
+            hash.iter().map(|byte| format!("{byte:02x}")).collect();
 
         writeln!(out, "{}  {}", hash, entry.path()?.display())?;
     }

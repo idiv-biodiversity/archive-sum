@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use archive_rs::Archive;
 use archive_sum::DynDigest;
+use clap::parser::ValueSource;
 use clap::ArgMatches;
 use clap_digest::Digest;
 
@@ -16,12 +17,13 @@ pub fn get() -> Arguments {
 }
 
 /// CLI arguments.
+#[derive(Debug)]
 pub struct Arguments {
-    archive: Option<String>,
-    append: Option<String>,
+    archive: Option<PathBuf>,
+    append: Option<PathBuf>,
     check: bool,
     check_source: Option<PathBuf>,
-    digest: Digest,
+    digest: Option<Digest>,
     list_digests: bool,
     last_quiet: Option<usize>,
     last_status: Option<usize>,
@@ -29,17 +31,30 @@ pub struct Arguments {
 
 impl From<ArgMatches> for Arguments {
     fn from(args: ArgMatches) -> Self {
-        let archive = args.value_of("archive").map(ToOwned::to_owned);
-        let append = args.value_of("append").map(ToOwned::to_owned);
+        let archive =
+            args.get_one::<PathBuf>("archive").map(ToOwned::to_owned);
+        let append = args.get_one::<PathBuf>("append").map(ToOwned::to_owned);
         let check = args.contains_id("check");
-        let check_source = args.value_of("check").map(PathBuf::from);
-        let digest = *args
-            .get_one::<Digest>("digest")
-            .expect("digest should have default value");
-        let list_digests = args.contains_id("list-digests");
+        let check_source =
+            args.get_one::<PathBuf>("check").map(ToOwned::to_owned);
+        let digest = args.get_one::<Digest>("digest").copied();
+        let list_digests = args.get_flag("list-digests");
 
-        let last_quiet = args.indices_of("quiet").and_then(Iterator::last);
-        let last_status = args.indices_of("status").and_then(Iterator::last);
+        let last_quiet = args.value_source("quiet").and_then(|source| {
+            if source == ValueSource::CommandLine {
+                args.indices_of("quiet").and_then(Iterator::last)
+            } else {
+                None
+            }
+        });
+
+        let last_status = args.value_source("status").and_then(|source| {
+            if source == ValueSource::CommandLine {
+                args.indices_of("status").and_then(Iterator::last)
+            } else {
+                None
+            }
+        });
 
         Self {
             archive,
@@ -64,7 +79,9 @@ impl Arguments {
     }
 
     pub fn digest(&self) -> Box<dyn DynDigest> {
-        self.digest.into()
+        self.digest
+            .expect("required unless list-digests present")
+            .into()
     }
 
     pub fn verify_dir(&self) -> Option<&Path> {
