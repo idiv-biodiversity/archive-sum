@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use archive_rs::Archive;
 
+use crate::hash_to_string;
 use crate::DynDigest;
 use crate::DEFAULT_BLOCK_SIZE;
 
@@ -59,10 +60,7 @@ pub fn run(
         }
 
         let hash_archive = hasher.finalize_reset();
-        let hash_archive: String = hash_archive
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect();
+        let hash_archive: String = hash_to_string(&hash_archive);
 
         let path = entry.path()?;
 
@@ -104,10 +102,7 @@ pub fn run(
         }
 
         let hash_source = hasher.finalize_reset();
-        let hash_source: String = hash_source
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect();
+        let hash_source: String = hash_to_string(&hash_source);
 
         if hash_archive == hash_source {
             writeln!(out, "{}: OK", source_file.display())?;

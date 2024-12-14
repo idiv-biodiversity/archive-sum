@@ -1,6 +1,8 @@
 #![deny(clippy::all)]
 #![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
 
+use std::fmt::Write;
+
 mod print;
 mod verify;
 
@@ -10,6 +12,13 @@ pub use print::run as print;
 pub use verify::run as verify;
 
 pub use digest::DynDigest;
+
+pub(crate) fn hash_to_string(bytes: &[u8]) -> String {
+    bytes.iter().fold(String::new(), |mut output, b| {
+        let _ = write!(output, "{b:02x}");
+        output
+    })
+}
 
 #[cfg(test)]
 mod test {

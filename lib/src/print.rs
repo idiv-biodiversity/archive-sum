@@ -3,6 +3,7 @@ use std::io::{Read, Write};
 use anyhow::Result;
 use archive_rs::Archive;
 
+use crate::hash_to_string;
 use crate::DynDigest;
 use crate::DEFAULT_BLOCK_SIZE;
 
@@ -39,8 +40,7 @@ pub fn run(
         }
 
         let hash = hasher.finalize_reset();
-        let hash: String =
-            hash.iter().map(|byte| format!("{byte:02x}")).collect();
+        let hash: String = hash_to_string(&hash);
 
         writeln!(out, "{}  {}", hash, entry.path()?.display())?;
     }
