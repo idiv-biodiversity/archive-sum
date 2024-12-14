@@ -25,7 +25,7 @@ sha2 = ["clap-digest/sha2"]
 
 [dependencies]
 anyhow = "1"
-archive-rs = "0.0.1"
+archive-rs = "0.0.2"
 archive-sum = { path = "../lib" }
 
 [dependencies.clap]

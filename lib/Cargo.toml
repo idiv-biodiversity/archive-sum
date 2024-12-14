@@ -14,7 +14,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-archive-rs = "0.0.1"
+archive-rs = "0.0.2"
 digest = "0.10"
 
 [dev-dependencies]
