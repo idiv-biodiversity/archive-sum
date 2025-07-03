@@ -1,5 +1,7 @@
 #![deny(clippy::all)]
 #![warn(clippy::pedantic, clippy::nursery, clippy::cargo)]
+// ALLOW only on Windows so who cares ¯\_(ツ)_/¯
+#![allow(clippy::multiple_crate_versions)]
 
 mod args;
 mod cli;
