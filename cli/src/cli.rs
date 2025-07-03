@@ -99,9 +99,9 @@ fn is_dir(s: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(s);
 
     if !path.exists() {
-        Err(format!("does not exist: {path:?}"))
+        Err(format!("does not exist: {}", path.display()))
     } else if !path.is_dir() {
-        Err(format!("not a directory: {path:?}"))
+        Err(format!("not a directory: {}", path.display()))
     } else if let Err(error) = fs::read_dir(&path) {
         Err(format!("{error}"))
     } else {
@@ -113,9 +113,9 @@ fn is_file(s: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(s);
 
     if !path.exists() {
-        Err(format!("does not exist: {path:?}"))
+        Err(format!("does not exist: {}", path.display()))
     } else if !path.is_file() {
-        Err(format!("not a file: {path:?}"))
+        Err(format!("not a file: {}", path.display()))
     } else if let Err(error) = File::open(s) {
         Err(format!("{error}"))
     } else {
