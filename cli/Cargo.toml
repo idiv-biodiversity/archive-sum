@@ -10,7 +10,7 @@ homepage = "https://github.com/idiv-biodiversity/archive-sum"
 repository = "https://github.com/idiv-biodiversity/archive-sum"
 keywords = ["archive", "checksum", "integrity"]
 categories = ["command-line-utilities", "filesystem"]
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "archive-sum"

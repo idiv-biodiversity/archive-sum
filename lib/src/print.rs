@@ -3,9 +3,9 @@ use std::io::{Read, Write};
 use anyhow::Result;
 use archive_rs::Archive;
 
-use crate::hash_to_string;
-use crate::DynDigest;
 use crate::DEFAULT_BLOCK_SIZE;
+use crate::DynDigest;
+use crate::hash_to_string;
 
 /// Prints hashes of entries in `archive` to `out`.
 ///
@@ -73,20 +73,26 @@ mod tests {
 
         assert_eq!(result.lines().count(), 3);
 
-        assert!(predicate::str::contains(
-            "d3b07384d113edec49eaa6238ad5ff00  src/foo"
-        )
-        .eval(result));
+        assert!(
+            predicate::str::contains(
+                "d3b07384d113edec49eaa6238ad5ff00  src/foo"
+            )
+            .eval(result)
+        );
 
-        assert!(predicate::str::contains(
-            "c157a79031e1c40f85931829bc5fc552  src/bar"
-        )
-        .eval(result));
+        assert!(
+            predicate::str::contains(
+                "c157a79031e1c40f85931829bc5fc552  src/bar"
+            )
+            .eval(result)
+        );
 
-        assert!(predicate::str::contains(
-            "258622b1688250cb619f3c9ccaefb7eb  src/baz"
-        )
-        .eval(result));
+        assert!(
+            predicate::str::contains(
+                "258622b1688250cb619f3c9ccaefb7eb  src/baz"
+            )
+            .eval(result)
+        );
 
         temp.close().unwrap();
     }

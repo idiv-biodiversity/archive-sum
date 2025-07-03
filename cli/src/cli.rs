@@ -1,8 +1,8 @@
 use std::fs::{self, File};
 use std::path::PathBuf;
 
-use clap::{crate_description, crate_version};
 use clap::{Arg, ArgAction, Command};
+use clap::{crate_description, crate_version};
 
 /// Returns command-line parser.
 pub fn build() -> Command {

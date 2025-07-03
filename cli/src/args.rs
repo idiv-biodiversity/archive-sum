@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use archive_rs::Archive;
 use archive_sum::DynDigest;
-use clap::parser::ValueSource;
 use clap::ArgMatches;
+use clap::parser::ValueSource;
 use clap_digest::Digest;
 
 /// Returns parsed arguments.
